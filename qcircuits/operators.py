@@ -89,32 +89,43 @@ class Operator(Tensor):
 # Factory functions
 
 # Identity operator
-def I(d=1):
+def Identity(d=1):
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
-                              [0.0j, 1.0 + 0.0j]])).power(d)
+                              [0.0j, 1.0 + 0.0j]])).tensor_power(d)
 
 # Pauli X gate operator
 # 'Not' gate, |0> to |1>, |1> to |0>
-def X(d=1):
+def PauliX(d=1):
     return Operator(np.array([[0.0j, 1.0 + 0.0j],
-                              [1.0 + 0.0j, 0.0j]])).power(d)
+                              [1.0 + 0.0j, 0.0j]])).tensor_power(d)
 
 # Pauli Y gate operator
-def Y(d=1):
+def PauliY(d=1):
     return Operator(np.array([[0.0j, -1.0j],
-                              [1.0j, 0.0j]])).power(d)
+                              [1.0j, 0.0j]])).tensor_power(d)
 
 # Pauli Z gate operator
 # Inverts the phase on |1>
-def Z(d=1):
+def PauliZ(d=1):
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
-                              [0.0j, -1.0 + 0.0j]])).power(d)
+                              [0.0j, -1.0 + 0.0j]])).tensor_power(d)
 
 # Hadamard gate operator
 # |0> to |+>, |1> to |->
-def H(d=1):
+def Hadamard(d=1):
     return Operator(1/np.sqrt(2) *  np.array([[1.0 + 0.0j,  1.0 + 0.0j],
-                                              [1.0 + 0.0j, -1.0 + 0.0j]])).power(d)
+                                              [1.0 + 0.0j, -1.0 + 0.0j]])).tensor_power(d)
+
+# Phase gate operator
+# |0> to |0>, |1> to e^(i\phi) |1>
+def Phase(phi=np.pi/2, d=1):
+    return Operator(np.array([[1.0 + 0.0j, 0.0j],
+                              [0.0j, np.exp(phi * 1j)]])).tensor_power(d)
+
+# SqrtNot gate operator U^2 = X
+def SqrtNot(d=1):
+    return Operator(0.5 * np.array([[1 + 1j, 1 - 1j],
+                                    [1 - 1j, 1 + 1j]])).tensor_power(d)
 
 # Conditional-not gate operator
 # Flips the second bit if the first bit is set
@@ -129,18 +140,41 @@ def CNOT():
                                                [[ 0.0, 1.0],
                                                 [ 1.0, 0.0]]]]))
 
+# Swap gate operator
+# |00> to |00>, |11> to |11>, |10> to |01>, |01> to |10>
+def Swap():
+    return Operator((1.0 + 0.0j) *  np.array([[[[ 1.0, 0.0],
+                                                [ 0.0, 0.0]],
+                                               [[ 0.0, 0.0],
+                                                [ 1.0, 0.0]]],
+                                              [[[ 0.0, 1.0],
+                                                [ 0.0, 0.0]],
+                                               [[ 0.0, 0.0],
+                                                [ 0.0, 1.0]]]]))
+
+# SqrtSwap gate operator, U^2 = Swap
+def SqrtSwap():
+    return Operator(np.array([[[[ 1.0,                 0.0],
+                                [ 0.0,      0.5 * (1 + 1j)]],
+                               [[ 0.0,                 0.0],
+                                [ 0.5 * (1 - 1j),      0.0]]],
+                              [[[ 0.0,       0.5 * (1 - 1j)],
+                                [ 0.0,                 0.0]],
+                               [[ 0.5 * (1 + 1j),      0.0],
+                                [ 0.0,                 1.0]]]]))
+
 # Conditional-U gate operator
 # If the first bit is set, apply operator U to the remainder
-def C_U(U):
+def ControlledU(U):
     d = U.rank // 2 + 1
     shape = [2] * 2 * d
     t = np.zeros(shape, dtype=np.complex128)
 
     # If the first bit is zero, fill in as the identity operator.
-    t[:, 0, ...] = I(d)[:, 0, ...]
+    t[:, 0, ...] = Identity(d)[:, 0, ...]
     # Else, fill in as Identity tensored with U (Identity for the first bit,
     # which remains unchanged.
-    t[:, 1, ...] = (I() * U)[:, 1, ...]
+    t[:, 1, ...] = (Identity() * U)[:, 1, ...]
     return Operator(t)
 
 # U_f operator

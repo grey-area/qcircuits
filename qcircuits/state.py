@@ -35,6 +35,7 @@ class State(Tensor):
 
     # TODO measure wrt more than 1 qubit?
     # TODO option to reduce state vector or not
+    # TODO modify the state, rather than returning a state
     def measure(self, qubit_index):
         if qubit_index < 0 or qubit_index >= self.rank:
             raise ValueError('Trying to measure qubit whose index i is not 0<=i<d, ' \
@@ -88,7 +89,6 @@ def ones(d=1):
 
 # Construct a state vector in one of the computational basis states
 # from a bitstring
-# TODO rename?
 def bitstring(*bits):
     if len(bits) < 1:
         raise ValueError('Rank must be at least 1.')
@@ -108,7 +108,7 @@ def positive_superposition(d=1):
     if d < 1:
         raise ValueError('Rank must be at least 1.')
 
-    H = operators.H(d)
+    H = operators.Hadamard(d)
     x = zeros(d)
     return H(x)
 
@@ -117,6 +117,6 @@ def bell_state(a=0, b=0):
         raise ValueError('Bell state arguments are bits, and must be 0 or 1.')
 
     phi = bitstring(a, b)
-    phi = operators.H()(phi, qubit_indices=[0])
+    phi = operators.Hadamard()(phi, qubit_indices=[0])
 
     return operators.CNOT()(phi)

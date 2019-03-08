@@ -33,14 +33,15 @@ def construct_problem(d=1):
 if __name__ == '__main__':
     d = 10
     f, problem_type = construct_problem(d=d)
+    U_f = qc.U_f(f, d=d+1)
 
-    H1 = qc.H(d)
-    H2 = qc.H()
+    H_d = qc.Hadamard(d)
+    H = qc.Hadamard()
 
     phi = qc.zeros(d) * qc.ones(1)
-    phi = (H1 * H2)(phi)
-    phi = qc.U_f(f, d=d+1)(phi)
-    phi = H1(phi, qubit_indices=range(d))
+    phi = (H_d * H)(phi)
+    phi = U_f(phi)
+    phi = H_d(phi, qubit_indices=range(d))
 
     bits = []
     for d_i in range(d):
