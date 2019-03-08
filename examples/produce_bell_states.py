@@ -6,10 +6,13 @@ from itertools import product
 
 
 def bell_state(x, y):
-    phi = qc.bitstring(x, y)
-    phi = qc.H()(phi, qubit_indices=[0])
+    H = qc.Hadamard()
+    CNOT = qc.CNOT()
 
-    return qc.CNOT()(phi)
+    phi = qc.bitstring(x, y)
+    phi = H(phi, qubit_indices=[0])
+
+    return CNOT(phi)
 
 
 if __name__ == '__main__':

@@ -18,10 +18,11 @@ def construct_problem():
 
 if __name__ == '__main__':
     f = construct_problem()
-    H = qc.H()
+    U_f = qc.U_f(f, d=2)
+    H = qc.Hadamard()
 
     phi = H(qc.zeros()) * H(qc.ones())
-    phi = qc.U_f(f, d=2)(phi)
+    phi = U_f(phi)
     phi = H(phi, qubit_indices=[0])
 
     measurement, phi = phi.measure(qubit_index=0)
