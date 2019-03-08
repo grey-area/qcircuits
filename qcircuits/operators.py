@@ -116,6 +116,17 @@ def H(d=1):
     return Operator(1/np.sqrt(2) *  np.array([[1.0 + 0.0j,  1.0 + 0.0j],
                                               [1.0 + 0.0j, -1.0 + 0.0j]])).power(d)
 
+# Phase gate operator
+# |0> to |0>, |1> to e^(i\phi) |1>
+def Phase(phi=np.pi/2, d=1):
+    return Operator(np.array([[1.0 + 0.0j, 0.0j],
+                              [0.0j, np.exp(phi * 1j)]])).power(d)
+
+# SqrtNot gate operator U^2 = X
+def SqrtNot(d=1):
+    return Operator(0.5 * np.array([[1 + 1j, 1 - 1j],
+                                    [1 - 1j, 1 + 1j]])).power(d)
+
 # Conditional-not gate operator
 # Flips the second bit if the first bit is set
 # |0x> to |0x>, |1x> to |1 (x+1)%2>
@@ -128,6 +139,29 @@ def CNOT():
                                                 [ 0.0, 0.0]],
                                                [[ 0.0, 1.0],
                                                 [ 1.0, 0.0]]]]))
+
+# Swap gate operator
+# |00> to |00>, |11> to |11>, |10> to |01>, |01> to |10>
+def Swap():
+    return Operator((1.0 + 0.0j) *  np.array([[[[ 1.0, 0.0],
+                                                [ 0.0, 0.0]],
+                                               [[ 0.0, 0.0],
+                                                [ 1.0, 0.0]]],
+                                              [[[ 0.0, 1.0],
+                                                [ 0.0, 0.0]],
+                                               [[ 0.0, 0.0],
+                                                [ 0.0, 1.0]]]]))
+
+# SqrtSwap gate operator, U^2 = Swap
+def SqrtSwap():
+    return Operator(np.array([[[[ 1.0,                 0.0],
+                                [ 0.0,      0.5 * (1 + 1j)]],
+                               [[ 0.0,                 0.0],
+                                [ 0.5 * (1 - 1j),      0.0]]],
+                              [[[ 0.0,       0.5 * (1 - 1j)],
+                                [ 0.0,                 0.0]],
+                               [[ 0.5 * (1 + 1j),      0.0],
+                                [ 0.0,                 1.0]]]]))
 
 # Conditional-U gate operator
 # If the first bit is set, apply operator U to the remainder

@@ -22,6 +22,8 @@ class Tensor:
     def rank(self):
         return len(self.shape)
 
+    # TODO power->tensor_power?
+    # TODO product -> tensor_product?
     def product(self, arg):
         return self.__class__(np.tensordot(self._t, arg._t, axes=0))
 
