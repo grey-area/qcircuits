@@ -90,19 +90,14 @@ def ones(d=1):
 # Construct a state vector in one of the computational basis states
 # from a bitstring
 def bitstring(*bits):
-    if len(bits) < 1:
+    d = len(bits)
+    if d == 0:
         raise ValueError('Rank must be at least 1.')
 
-    if bits[0]:
-        q = ones()
-    else:
-        q = zeros()
-    for bit in bits[1:]:
-        if bit:
-            q = q * ones()
-        else:
-            q = q * zeros()
-    return q
+    shape = [2] * d
+    t = np.zeros(shape, dtype=np.complex128)
+    t[bits] = 1
+    return State(t)
 
 def positive_superposition(d=1):
     if d < 1:
