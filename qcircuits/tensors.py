@@ -22,12 +22,10 @@ class Tensor:
     def rank(self):
         return len(self.shape)
 
-    # TODO power->tensor_power?
-    # TODO product -> tensor_product?
-    def product(self, arg):
+    def tensor_product(self, arg):
         return self.__class__(np.tensordot(self._t, arg._t, axes=0))
 
-    def power(self, n=2):
+    def tensor_power(self, n):
         t = self._t
         for i in range(n-1):
             t = np.tensordot(t, self._t, axes=0)
@@ -35,7 +33,7 @@ class Tensor:
         return self.__class__(t)
 
     def __mul__(self, arg):
-        return self.product(arg)
+        return self.tensor_product(arg)
 
     def __pow__(self, n):
-        return self.power(n)
+        return self.tensor_power(n)

@@ -91,41 +91,41 @@ class Operator(Tensor):
 # Identity operator
 def I(d=1):
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
-                              [0.0j, 1.0 + 0.0j]])).power(d)
+                              [0.0j, 1.0 + 0.0j]])).tensor_power(d)
 
 # Pauli X gate operator
 # 'Not' gate, |0> to |1>, |1> to |0>
 def X(d=1):
     return Operator(np.array([[0.0j, 1.0 + 0.0j],
-                              [1.0 + 0.0j, 0.0j]])).power(d)
+                              [1.0 + 0.0j, 0.0j]])).tensor_power(d)
 
 # Pauli Y gate operator
 def Y(d=1):
     return Operator(np.array([[0.0j, -1.0j],
-                              [1.0j, 0.0j]])).power(d)
+                              [1.0j, 0.0j]])).tensor_power(d)
 
 # Pauli Z gate operator
 # Inverts the phase on |1>
 def Z(d=1):
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
-                              [0.0j, -1.0 + 0.0j]])).power(d)
+                              [0.0j, -1.0 + 0.0j]])).tensor_power(d)
 
 # Hadamard gate operator
 # |0> to |+>, |1> to |->
 def H(d=1):
     return Operator(1/np.sqrt(2) *  np.array([[1.0 + 0.0j,  1.0 + 0.0j],
-                                              [1.0 + 0.0j, -1.0 + 0.0j]])).power(d)
+                                              [1.0 + 0.0j, -1.0 + 0.0j]])).tensor_power(d)
 
 # Phase gate operator
 # |0> to |0>, |1> to e^(i\phi) |1>
 def Phase(phi=np.pi/2, d=1):
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
-                              [0.0j, np.exp(phi * 1j)]])).power(d)
+                              [0.0j, np.exp(phi * 1j)]])).tensor_power(d)
 
 # SqrtNot gate operator U^2 = X
 def SqrtNot(d=1):
     return Operator(0.5 * np.array([[1 + 1j, 1 - 1j],
-                                    [1 - 1j, 1 + 1j]])).power(d)
+                                    [1 - 1j, 1 + 1j]])).tensor_power(d)
 
 # Conditional-not gate operator
 # Flips the second bit if the first bit is set
