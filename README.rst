@@ -2,6 +2,10 @@
 QCircuits
 =========
 
+Full documentation at `www.awebb.info/qcircuits/index.html <http://www.awebb.info/qcircuits/index.html>`_.
+
+.. inclusion-marker-do-not-remove
+
 QCircuits is a lightweight package for simulating the operation of
 small-scale quantum computers, based on the quantum circuit model.
 It uses rank d and rank 2d tensors to represent state vectors for and operators on d-qubit systems,

@@ -10,6 +10,8 @@ Welcome to QCircuits's documentation
    :maxdepth: 2
    :caption: Contents:
 
+Repository at `github.com/grey-area/qcircuits <https://github.com/grey-area/qcircuits>`_.
+	     
 Indices and tables
 ==================
 
@@ -17,4 +19,8 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`search`
 
+Summary
+=======
+
 .. include:: ../../README.rst
+  :start-after: inclusion-marker-do-not-remove
