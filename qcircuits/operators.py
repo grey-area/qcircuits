@@ -157,7 +157,7 @@ def PauliX(d=1):
     """
     Produce the `d`-qubit Pauli X operator :math:`X^{\\otimes d}`,
     or `not` gate.
-    Maps: |0⟩ -> |1⟩, |1⟩ -> |0⟩.
+    Maps: \|0⟩ -> \|1⟩, \|1⟩ -> \|0⟩.
 
     Parameters
     ----------
@@ -183,7 +183,7 @@ def PauliX(d=1):
 def PauliY(d=1):
     """
     Produce the `d`-qubit Pauli Y operator :math:`Y^{\\otimes d}`.
-    Maps: |0⟩ -> `i` |1⟩, |1⟩ -> -`i` |0⟩.
+    Maps: \|0⟩ -> `i` \|1⟩, \|1⟩ -> -`i` \|0⟩.
 
     Parameters
     ----------
@@ -210,7 +210,7 @@ def PauliZ(d=1):
     """
     Produce the `d`-qubit Pauli Z operator :math:`Z^{\\otimes d}`,
     or phase inverter.
-    Maps: |0⟩ -> |0⟩, |1⟩ -> -|1⟩.
+    Maps: \|0⟩ -> \|0⟩, \|1⟩ -> -\|1⟩.
 
     Parameters
     ----------
@@ -235,8 +235,8 @@ def PauliZ(d=1):
 def Hadamard(d=1):
     """
     Produce the `d`-qubit Hadamard operator :math:`H^{\\otimes d}`.
-    Maps: |0⟩ -> :math:`\\frac{1}{\\sqrt{2}}` (|0⟩+|1⟩) = |+⟩,
-    |1⟩ -> :math:`\\frac{1}{\\sqrt{2}}` (|0⟩-|1⟩) = |-⟩.
+    Maps: \|0⟩ -> :math:`\\frac{1}{\\sqrt{2}}` (\|0⟩+\|1⟩) = \|+⟩,
+    \|1⟩ -> :math:`\\frac{1}{\\sqrt{2}}` (\|0⟩-\|1⟩) = \|-⟩.
 
     Parameters
     ----------
@@ -262,7 +262,7 @@ def Hadamard(d=1):
 def Phase(phi=np.pi/2, d=1):
     """
     Produce the `d`-qubit Phase change operator.
-    Maps: |0⟩ -> |0⟩, |1⟩ -> :math:`e^{i\phi}` |1⟩.
+    Maps: \|0⟩ -> \|0⟩, \|1⟩ -> :math:`e^{i\phi}` \|1⟩.
 
     Parameters
     ----------
@@ -316,7 +316,7 @@ def CNOT():
     """
     Produce the two-qubit CNOT operator, which flips the second bit
     if the first bit is set.
-    Maps |00⟩ -> |00⟩, |01⟩ -> |01⟩, |10⟩ -> |01⟩, |11⟩ -> |10⟩.
+    Maps \|00⟩ -> \|00⟩, \|01⟩ -> \|01⟩, \|10⟩ -> \|01⟩, \|11⟩ -> \|10⟩.
 
     Returns
     -------
@@ -342,7 +342,7 @@ def CNOT():
 def Swap():
     """
     Produce the two-qubit SWAP operator, which swaps two bits.
-    Maps |00⟩ -> |00⟩, |01⟩ -> |10⟩, |10⟩ -> |01⟩, |11⟩ -> |11⟩.
+    Maps \|00⟩ -> \|00⟩, \|01⟩ -> \|10⟩, \|10⟩ -> \|01⟩, \|11⟩ -> \|11⟩.
 
     Returns
     -------

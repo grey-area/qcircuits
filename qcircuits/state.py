@@ -127,16 +127,16 @@ def qubit(*, alpha=None, beta=None,
     Parameters
     ----------
     alpha : float
-        The probability amplitude for the |0⟩ basis vector.
+        The probability amplitude for the \|0⟩ basis vector.
         Should not be specified in conjunction with theta or phi.
     beta : float
-        The probability amplitude for the |1⟩ basis vector.
+        The probability amplitude for the \|1⟩ basis vector.
         Should not be specified in conjunction with theta or phi.
     theta : float
-        The angle of the state between |0⟩ and |1⟩ on the Bloch sphere.
+        The angle of the state between \|0⟩ and \|1⟩ on the Bloch sphere.
         Should not be specified in conjunction with alpha or beta.
     phi : float
-        The phase of the |1⟩ component.
+        The phase of the \|1⟩ component.
         Should not be specified in conjunction with alpha or beta.
     global_phase : float
         A global phase applied to the state.
@@ -178,7 +178,7 @@ def qubit(*, alpha=None, beta=None,
 def zeros(d=1):
     """
     Produce the all-zero computational basis vector for `d` qubits.
-    I.e., produces :math:`|0⟩^{\otimes d}`.
+    I.e., produces :math:`\|0⟩^{\otimes d}`.
 
     Parameters
     ----------
@@ -190,7 +190,7 @@ def zeros(d=1):
     -------
     State
         A `d`-rank tensor describing the all-zero `d`-qubit
-        computational basis vector, :math:`|0⟩^{\otimes d}`
+        computational basis vector, :math:`\|0⟩^{\otimes d}`
 
     See Also
     --------
@@ -211,7 +211,7 @@ def zeros(d=1):
 def ones(d=1):
     """
     Produce the all-one computational basis vector for `d` qubits.
-    I.e., produces :math:`|1⟩^{\otimes d}`.
+    I.e., produces :math:`\|1⟩^{\otimes d}`.
 
     Parameters
     ----------
@@ -223,7 +223,7 @@ def ones(d=1):
     -------
     State
         A `d`-rank tensor describing the all-one `d`-qubit
-        computational basis vector, :math:`|1⟩^{\otimes d}`
+        computational basis vector, :math:`\|1⟩^{\otimes d}`
 
     See Also
     --------
@@ -278,9 +278,9 @@ def positive_superposition(d=1):
     """
     Produce the positive superposition for a `d` qubit system, i.e.,
     the state resulting from applying the
-    :py:func:`.Hadamard` gate to each of `d` |0⟩
+    :py:func:`.Hadamard` gate to each of `d` \|0⟩
     computational basis states,
-    :math:`H^{\otimes d}(|0⟩^{\otimes d}) = |+⟩^{\otimes d}.`
+    :math:`H^{\otimes d}(\|0⟩^{\otimes d}) = \|+⟩^{\otimes d}.`
 
     Parameters
     ----------
@@ -291,7 +291,7 @@ def positive_superposition(d=1):
     -------
     State
         A `d`-rank tensor describing the positive superposition for
-        a `d`-qubit system, :math:`|+⟩^{\otimes d}.`
+        a `d`-qubit system, :math:`\|+⟩^{\otimes d}.`
 
     See Also
     --------
@@ -309,7 +309,7 @@ def positive_superposition(d=1):
 def bell_state(a=0, b=0):
     """
     Produce one of the four Bell states for a two-qubit system,
-    :math:`|\\beta_{ab}⟩`.
+    :math:`\|\\beta_{ab}⟩`.
 
     Parameters
     ----------
@@ -325,7 +325,7 @@ def bell_state(a=0, b=0):
     State
         A rank 2 tensor describing one of the four two-qubit Bell
         states. E.g.,
-        :math:`|\\beta_{00}⟩ = \\frac{1}{\\sqrt{2}} (|00⟩ + |11⟩)`
+        :math:`\|\\beta_{00}⟩ = \\frac{1}{\\sqrt{2}} (\|00⟩ + \|11⟩)`
 
     See Also
     --------
