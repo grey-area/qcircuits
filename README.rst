@@ -2,9 +2,14 @@
 QCircuits
 =========
 
+Full documentation at `www.awebb.info/qcircuits/index.html <http://www.awebb.info/qcircuits/index.html>`_.
+
+.. inclusion-marker-do-not-remove
+
 QCircuits is a lightweight package for simulating the operation of
 small-scale quantum computers, based on the quantum circuit model.
-It uses rank d and rank 2d tensors to represent state vectors for and operators on d-qubit systems, rather than using straight vectors and matrices
+It uses rank d and rank 2d tensors to represent state vectors for and operators on d-qubit systems,
+rather than using straight vectors and matrices
 produces by Kronecker products.
 
 Example usage, performing quantum teleportation::
@@ -13,9 +18,9 @@ Example usage, performing quantum teleportation::
 
     # Instantiating the operators we will need
     CNOT = qc.CNOT()
-    H = qc.H()
-    X = qc.X()
-    Z = qc.Z()
+    H = qc.Hadamard()
+    X = qc.PauliX()
+    Z = qc.PauliZ()
 
     # Alice's hidden state, and the shared Bell state
     alice = qc.qubit(theta=1, phi=1, global_phase=0.2)

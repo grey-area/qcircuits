@@ -17,8 +17,9 @@ def construct_problem():
 
 if __name__ == '__main__':
     f = construct_problem()
-    H = qc.H()
+    U_f = qc.U_f(f, d=2)
+    H = qc.Hadamard()
 
     phi = qc.zeros(2)
     phi = H(phi, qubit_indices=[0])
-    phi = qc.U_f(f, d=2)(phi)
+    phi = U_f(phi)

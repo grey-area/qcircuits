@@ -1,9 +1,21 @@
-from qcircuits.tensors import Tensor
-import numpy as np
 from itertools import product
+
+import numpy as np
+
+from qcircuits.tensors import Tensor
 
 
 class Operator(Tensor):
+    """
+    A container class for a tensor representing an operator on a vector
+    space for a quantum system, and associated methods.
+
+    Parameters
+    ----------
+    tensor : numpy complex128 multidimensional array
+        The tensor representing the operator.
+    """
+
     def __init__(self, tensor):
         super().__init__(tensor)
         # TODO check unitary
@@ -19,6 +31,34 @@ class Operator(Tensor):
     # Compose this operator with another operator, or apply it to a state vector
     # TODO break up this function
     def __call__(self, arg, qubit_indices=None):
+        """
+        Applies this Operator to another Operator, as in operator
+        composition A(B), or to a :py:class:`.State`, as in A(v). This means that
+        if two operators A and B will be applied to state v in sequence,
+        either B(A(v)) or (B(A))(v) are valid.
+
+        This operator may be applied to state vectors of higher rank
+        if the qubits to which it is to be applied are specified in the
+        `qubit_indices` parameter.
+
+        Parameters
+        ----------
+        arg : State or Operator
+            The state that the operator is applied to, or the operator
+            with which the operator is composed.
+        qubit_indices: list of int
+            If the operator is applied to a state vector for a larger
+            quantum system, the user must supply a list of the indices
+            of the qubits to which the operator is to be applied.
+            These must be in numerical order.
+
+        Returns
+        -------
+        State or Operator
+            The state vector or operator resulting in applying the
+            operator to the argument.
+        """
+
         d = arg.rank
         if qubit_indices is not None:
             qubit_indices = list(qubit_indices)
@@ -86,40 +126,209 @@ class Operator(Tensor):
         return arg.__class__(result)
 
 
-# Factory functions
+# Factory functions for building operators
 
-# Identity operator
-def I(d=1):
+def Identity(d=1):
+    """
+    Produce the `d`-qubit identity operator :math:`I^{\\otimes d}`.
+
+    Parameters
+    ----------
+    d : int
+        The number of qubits described by the state vector on which
+        the produced operator will act.
+
+    Returns
+    -------
+    Operator
+        A rank `2d` tensor describing the operator.
+
+    See Also
+    --------
+    PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
-                              [0.0j, 1.0 + 0.0j]])).power(d)
+                              [0.0j, 1.0 + 0.0j]])).tensor_power(d)
 
-# Pauli X gate operator
-# 'Not' gate, |0> to |1>, |1> to |0>
-def X(d=1):
+
+def PauliX(d=1):
+    """
+    Produce the `d`-qubit Pauli X operator :math:`X^{\\otimes d}`,
+    or `not` gate.
+    Maps: |0⟩ -> |1⟩, |1⟩ -> |0⟩.
+
+    Parameters
+    ----------
+    d : int
+        The number of qubits described by the state vector on which
+        the produced operator will act.
+
+    Returns
+    -------
+    Operator
+        A rank `2d` tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
     return Operator(np.array([[0.0j, 1.0 + 0.0j],
-                              [1.0 + 0.0j, 0.0j]])).power(d)
+                              [1.0 + 0.0j, 0.0j]])).tensor_power(d)
 
-# Pauli Y gate operator
-def Y(d=1):
+
+def PauliY(d=1):
+    """
+    Produce the `d`-qubit Pauli Y operator :math:`Y^{\\otimes d}`.
+    Maps: |0⟩ -> `i` |1⟩, |1⟩ -> -`i` |0⟩.
+
+    Parameters
+    ----------
+    d : int
+        The number of qubits described by the state vector on which
+        the produced operator will act.
+
+    Returns
+    -------
+    Operator
+        A rank `2d` tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliZ, Hadamard, Phase, SqrtNot, CNOT
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
     return Operator(np.array([[0.0j, -1.0j],
-                              [1.0j, 0.0j]])).power(d)
+                              [1.0j, 0.0j]])).tensor_power(d)
 
-# Pauli Z gate operator
-# Inverts the phase on |1>
-def Z(d=1):
+
+def PauliZ(d=1):
+    """
+    Produce the `d`-qubit Pauli Z operator :math:`Z^{\\otimes d}`,
+    or phase inverter.
+    Maps: |0⟩ -> |0⟩, |1⟩ -> -|1⟩.
+
+    Parameters
+    ----------
+    d : int
+        The number of qubits described by the state vector on which
+        the produced operator will act.
+
+    Returns
+    -------
+    Operator
+        A rank `2d` tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, Hadamard, Phase, SqrtNot, CNOT
+    Swap, SqrtSwap, ControlledU, U_f
+    """
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
-                              [0.0j, -1.0 + 0.0j]])).power(d)
+                              [0.0j, -1.0 + 0.0j]])).tensor_power(d)
 
-# Hadamard gate operator
-# |0> to |+>, |1> to |->
-def H(d=1):
-    return Operator(1/np.sqrt(2) *  np.array([[1.0 + 0.0j,  1.0 + 0.0j],
-                                              [1.0 + 0.0j, -1.0 + 0.0j]])).power(d)
 
-# Conditional-not gate operator
-# Flips the second bit if the first bit is set
-# |0x> to |0x>, |1x> to |1 (x+1)%2>
+def Hadamard(d=1):
+    """
+    Produce the `d`-qubit Hadamard operator :math:`H^{\\otimes d}`.
+    Maps: |0⟩ -> :math:`\\frac{1}{\\sqrt{2}}` (|0⟩+|1⟩) = |+⟩,
+    |1⟩ -> :math:`\\frac{1}{\\sqrt{2}}` (|0⟩-|1⟩) = |-⟩.
+
+    Parameters
+    ----------
+    d : int
+        The number of qubits described by the state vector on which
+        the produced operator will act.
+
+    Returns
+    -------
+    Operator
+        A rank `2d` tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Phase, SqrtNot, CNOT
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+    return Operator(1/np.sqrt(2) *
+        np.array([[1.0 + 0.0j,  1.0 + 0.0j],
+                  [1.0 + 0.0j, -1.0 + 0.0j]])).tensor_power(d)
+
+
+def Phase(phi=np.pi/2, d=1):
+    """
+    Produce the `d`-qubit Phase change operator.
+    Maps: |0⟩ -> |0⟩, |1⟩ -> :math:`e^{i\phi}` |1⟩.
+
+    Parameters
+    ----------
+    d : int
+        The number of qubits described by the state vector on which
+        the produced operator will act.
+
+    Returns
+    -------
+    Operator
+        A rank `2d` tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, SqrtNot, CNOT
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    return Operator(np.array([[1.0 + 0.0j, 0.0j],
+                              [0.0j, np.exp(phi * 1j)]])).tensor_power(d)
+
+
+def SqrtNot(d=1):
+    """
+    Produce the `d`-qubit operator that is the square root of the
+    `d`-qubit NOT or :py:func:`PauliX` operator, i.e.,
+    :math:`\\sqrt{\\texttt{NOT}}(\\sqrt{\\texttt{NOT}}) = X`.
+
+    Parameters
+    ----------
+    d : int
+        The number of qubits described by the state vector on which
+        the produced operator will act.
+
+    Returns
+    -------
+    Operator
+        A rank `2d` tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    return Operator(0.5 * np.array([[1 + 1j, 1 - 1j],
+                                    [1 - 1j, 1 + 1j]])).tensor_power(d)
+
+
 def CNOT():
+    """
+    Produce the two-qubit CNOT operator, which flips the second bit
+    if the first bit is set.
+    Maps |00⟩ -> |00⟩, |01⟩ -> |01⟩, |10⟩ -> |01⟩, |11⟩ -> |10⟩.
+
+    Returns
+    -------
+    Operator
+        A rank 4 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
     return Operator((1.0 + 0.0j) *  np.array([[[[ 1.0, 0.0],
                                                 [ 0.0, 1.0]],
                                                [[ 0.0, 0.0],
@@ -129,25 +338,118 @@ def CNOT():
                                                [[ 0.0, 1.0],
                                                 [ 1.0, 0.0]]]]))
 
-# Conditional-U gate operator
-# If the first bit is set, apply operator U to the remainder
-def C_U(U):
+
+def Swap():
+    """
+    Produce the two-qubit SWAP operator, which swaps two bits.
+    Maps |00⟩ -> |00⟩, |01⟩ -> |10⟩, |10⟩ -> |01⟩, |11⟩ -> |11⟩.
+
+    Returns
+    -------
+    Operator
+        A rank 4 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    CNOT, SqrtSwap, ControlledU, U_f
+    """
+
+    return Operator((1.0 + 0.0j) *  np.array([[[[ 1.0, 0.0],
+                                                [ 0.0, 0.0]],
+                                               [[ 0.0, 0.0],
+                                                [ 1.0, 0.0]]],
+                                              [[[ 0.0, 1.0],
+                                                [ 0.0, 0.0]],
+                                               [[ 0.0, 0.0],
+                                                [ 0.0, 1.0]]]]))
+
+
+def SqrtSwap():
+    """
+    Produce the two-qubit operator that is the square root of the
+    :py:func:`.Swap` operator, i.e.,
+    :math:`\\sqrt{\\texttt{SWAP}}(\\sqrt{\\texttt{SWAP}}) = \\texttt{SWAP}`.
+
+    Returns
+    -------
+    Operator
+        A rank 4 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    CNOT, Swap, ControlledU, U_f
+    """
+
+    return Operator(np.array([[[[ 1.0,                 0.0],
+                                [ 0.0,      0.5 * (1 + 1j)]],
+                               [[ 0.0,                 0.0],
+                                [ 0.5 * (1 - 1j),      0.0]]],
+                              [[[ 0.0,       0.5 * (1 - 1j)],
+                                [ 0.0,                 0.0]],
+                               [[ 0.5 * (1 + 1j),      0.0],
+                                [ 0.0,                 1.0]]]]))
+
+
+def ControlledU(U):
+    """
+    Produce a Controlled-U operator, an operator for a `d` + 1 qubit
+    system where the supplied U is an operator for a `d` qubit system.
+    If the first bit is set, apply U to the state for the remaining
+    bits.
+
+    Parameters
+    ----------
+    U : Operator
+        The operator to be conditionally applied.
+
+    Returns
+    -------
+    Operator
+        A tensor whose rank is the rank of U plus 2,
+        describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    CNOT, Swap, SqrtSwap, U_f
+    """
+
     d = U.rank // 2 + 1
     shape = [2] * 2 * d
     t = np.zeros(shape, dtype=np.complex128)
 
     # If the first bit is zero, fill in as the identity operator.
-    t[:, 0, ...] = I(d)[:, 0, ...]
+    t[:, 0, ...] = Identity(d)[:, 0, ...]
     # Else, fill in as Identity tensored with U (Identity for the first bit,
     # which remains unchanged.
-    t[:, 1, ...] = (I() * U)[:, 1, ...]
+    t[:, 1, ...] = (Identity() * U)[:, 1, ...]
     return Operator(t)
 
-# U_f operator
-# If f is a Boolean function [0,1]^(d-1) -> [0, 1],
-# constructs a Unitary operator that takes x, y to x, (y+f(x))%2
-# There are d-1 input bits and 1 output bit.
+
 def U_f(f, d):
+    """
+    Produce a U_f operator, an operator for a `d` qubit
+    system that flips the last bit based on the outcome of a supplied
+    boolean function :math:`f: [0, 1]^{d-1} \\to [0, 1]` applied to the
+    first `d` - 1 bits.
+
+    Parameters
+    ----------
+    f : function
+        The boolean function used to conditionally flip the last bit.
+
+    Returns
+    -------
+    Operator
+        A rank `2d` tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    CNOT, Swap, SqrtSwap, ControlledU
+    """
     if d < 2:
         raise ValueError('U_f operator requires rank >= 2.')
 
