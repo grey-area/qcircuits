@@ -34,46 +34,9 @@ Example usage
 
 .. inclusion-marker2-do-not-remove
 
-Quantum teleportation example::
+Quantum teleportation example:
 
-    import qcircuits as qc
-
-    # Instantiating the operators we will need
-    CNOT = qc.CNOT()
-    H = qc.Hadamard()
-    X = qc.PauliX()
-    Z = qc.PauliZ()
-
-    # Alice's hidden state, that she wishes to transport to Bob.
-    alice = qc.qubit(theta=1, phi=1, global_phase=0.2)
-
-    # A previously prepared Bell state, with one qubit owned by
-    # alice, and another by Bob, now physically separated.
-    bell_state = qc.bell_state(0, 0)
-
-    # The state vector for the whole system.
-    phi = alice * bell_state
-
-    # Alice applies a CNOT gate to her two qubit, and then
-    # a Hadamard gate to her private qubit.
-    phi = CNOT(phi, qubit_indices=[0, 1])
-    phi = H(phi, qubit_indices=[0])
-
-    # Alice measures her two qubits, and transmits the
-    # two classical bits to Bob.
-    M1, phi = phi.measure(qubit_index=0)
-    M2, bob = phi.measure(qubit_index=0)
-
-    # Bob applies gates to his qubit conditionally on
-    # the classical bits he receives.
-    # sends to Bob
-    if M2:
-        bob = X(bob)
-    if M1:
-        bob = Z(bob)
-
-    print('Original state:', alice)
-    print('\nTeleported state:', bob)
+.. literalinclude:: ../../examples/quantum_teleportation.py
 
 
 Details
