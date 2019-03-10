@@ -1,3 +1,5 @@
+.. _operators_module:
+
 qcircuits.operators module
 ==========================
 

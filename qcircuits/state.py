@@ -1,3 +1,11 @@
+"""
+The state module contains the State class, instances of which represent quantum states of multi-qubit systems, and factory functions for creating specific quantum states.
+
+Each of the factory functions (but not the State class) is aliased at the top-level module, so that, for example, one can call ``qcircuits.zeros()``
+instead of ``qcircuits.state.zeros()``.
+"""
+
+
 import numpy as np
 
 from qcircuits.tensors import Tensor

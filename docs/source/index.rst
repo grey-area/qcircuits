@@ -11,16 +11,39 @@ Welcome to QCircuits's documentation
    :caption: Contents:
 
 Repository at `github.com/grey-area/qcircuits <https://github.com/grey-area/qcircuits>`_.
-	     
-Indices and tables
-==================
 
-* :ref:`modindex`
-* :ref:`genindex`
-* :ref:`search`
 
 Summary
 =======
 
 .. include:: ../../README.rst
-  :start-after: inclusion-marker-do-not-remove
+  :start-after: inclusion-marker0-do-not-remove
+  :end-before: inclusion-marker1-do-not-remove
+
+Documentation, tutorial, and examples
+=====================================
+
+* :ref:`State module<state_module>`
+* :ref:`Operators module<operators_module>`
+* :ref:`Tensors module<tensors_module>`
+* :ref:`Tutorial<tutorial_page>`
+* :ref:`Examples<examples_page>`
+
+.. * :ref:`genindex`
+
+.. include:: ../../README.rst
+  :start-after: inclusion-marker1-do-not-remove
+  :end-before: inclusion-marker15-do-not-remove
+
+or from the source at `github.com/grey-area/qcircuits <https://github.com/grey-area/qcircuits>`_.
+
+.. include:: ../../README.rst
+  :start-after: inclusion-marker16-do-not-remove
+  :end-before: inclusion-marker2-do-not-remove
+
+See the :ref:`examples page<examples_page>` for more examples.
+
+.. include:: ../../README.rst
+  :start-after: inclusion-marker2-do-not-remove
+
+

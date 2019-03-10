@@ -1,3 +1,5 @@
+.. _state_module:
+
 qcircuits.state module
 ======================
 

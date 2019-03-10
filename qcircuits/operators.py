@@ -1,3 +1,11 @@
+"""
+The operators module contains the Operator class, instances of which represent Operators on vector spaces for multi-qubit systems, and factory functions for creating specific operators.
+
+Each of the factory functions (but not the Operator class) is aliased at the top-level module, so that, for example, one can call ``qcircuits.Hadamard()``
+instead of ``qcircuits.state.Hadamard()``.
+"""
+
+
 from itertools import product
 
 import numpy as np
