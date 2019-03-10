@@ -36,7 +36,7 @@ Example usage
 
 Quantum teleportation example:
 
-.. literalinclude:: ../../examples/quantum_teleportation.py
+.. literalinclude:: examples/quantum_teleportation.py
 
 
 Details
