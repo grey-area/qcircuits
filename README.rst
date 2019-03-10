@@ -39,7 +39,7 @@ Quantum teleportation example:
 Quantum circuit:
 
 .. image:: docs/source/images/teleport.png
-    :scale: 65%
+    :scale: 50%
 
 Code::
 
