@@ -153,7 +153,7 @@ def Identity(d=1):
 
     See Also
     --------
-    PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT
+    PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -180,7 +180,7 @@ def PauliX(d=1):
 
     See Also
     --------
-    Identity, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT
+    Identity, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -206,7 +206,7 @@ def PauliY(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliZ, Hadamard, Phase, SqrtNot, CNOT
+    Identity, PauliX, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -233,7 +233,7 @@ def PauliZ(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, Hadamard, Phase, SqrtNot, CNOT
+    Identity, PauliX, PauliY, Hadamard, Phase, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
@@ -259,7 +259,7 @@ def Hadamard(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Phase, SqrtNot, CNOT
+    Identity, PauliX, PauliY, PauliZ, Phase, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
     return Operator(1/np.sqrt(2) *
@@ -285,7 +285,7 @@ def Phase(phi=np.pi/2, d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, SqrtNot, CNOT
+    Identity, PauliX, PauliY, PauliZ, Hadamard, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -312,7 +312,7 @@ def SqrtNot(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -333,7 +333,7 @@ def CNOT():
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Toffoli, SqrtNot
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -345,6 +345,37 @@ def CNOT():
                                                 [ 0.0, 0.0]],
                                                [[ 0.0, 1.0],
                                                 [ 1.0, 0.0]]]]))
+
+
+def Toffoli():
+    """
+    Produce the three-qubit Toffoli operator, which flips the third bit
+    if the first two bits are set.
+    Maps \|110⟩ -> \|111⟩, \|111⟩ -> \|110⟩, and otherwise acts as the
+    identity.
+
+    Returns
+    -------
+    Operator
+        A rank 6 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT, SqrtNot
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    d = 3
+    shape = [2] * 2 * d
+    t = np.zeros(shape, dtype=np.complex128)
+
+    # Fill in the operator as the Identity operator.
+    t[:] = Identity(d)[:]
+    # In the case that the first two bits are set, it acts on the third
+    # bit as the PauliX operator.
+    t[:, 1, :, 1, ...] = (Identity(2) * PauliX())[:, 1, :, 1]
+
+    return Operator(t)
 
 
 def Swap():
@@ -360,7 +391,7 @@ def Swap():
     See Also
     --------
     Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
-    CNOT, SqrtSwap, ControlledU, U_f
+    CNOT, Toffoli, SqrtSwap, ControlledU, U_f
     """
 
     return Operator((1.0 + 0.0j) *  np.array([[[[ 1.0, 0.0],
@@ -387,7 +418,7 @@ def SqrtSwap():
     See Also
     --------
     Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
-    CNOT, Swap, ControlledU, U_f
+    CNOT, Toffoli, Swap, ControlledU, U_f
     """
 
     return Operator(np.array([[[[ 1.0,                 0.0],
@@ -421,7 +452,7 @@ def ControlledU(U):
     See Also
     --------
     Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
-    CNOT, Swap, SqrtSwap, U_f
+    CNOT, Toffoli, Swap, SqrtSwap, U_f
     """
 
     d = U.rank // 2 + 1
@@ -456,7 +487,7 @@ def U_f(f, d):
     See Also
     --------
     Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
-    CNOT, Swap, SqrtSwap, ControlledU
+    CNOT, Toffoli, Swap, SqrtSwap, ControlledU
     """
     if d < 2:
         raise ValueError('U_f operator requires rank >= 2.')
