@@ -1,4 +1,4 @@
 include *.txt
 include *.rst
 include qcircuits/VERSION
-recursive-include docs *.txt
+recursive-include docs *.rst

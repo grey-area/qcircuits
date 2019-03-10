@@ -1,5 +1,3 @@
-import os
-
 from qcircuits.state import qubit, zeros, ones, bitstring
 from qcircuits.state import positive_superposition, bell_state
 from qcircuits.operators import Identity, PauliX, PauliY, PauliZ
@@ -8,5 +6,4 @@ from qcircuits.operators import CNOT, Swap, SqrtSwap
 from qcircuits.operators import ControlledU, U_f
 
 
-with open(os.path.join(os.path.dirname(__file__), 'VERSION'), 'r') as fp:
-    __version__ = fp.read().strip()
+__version__ = '0.2.0'
