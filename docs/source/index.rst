@@ -43,7 +43,11 @@ or from the source at `github.com/grey-area/qcircuits <https://github.com/grey-a
 
 See the :ref:`examples page<examples_page>` for more examples.
 
+Quantum teleportation example:
+
+.. literalinclude:: ../../examples/quantum_teleportation.py
+
 .. include:: ../../README.rst
-  :start-after: inclusion-marker2-do-not-remove
+  :start-after: inclusion-marker3-do-not-remove
 
 
