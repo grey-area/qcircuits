@@ -36,5 +36,5 @@ if __name__ == '__main__':
     measurement_1, phi = phi.measure(qubit_index=0)
     measurement_2, _ = phi.measure(qubit_index=0)
 
-    print(f"Alice's initial bits:\t{bit_1}, {bit_2}")
-    print(f"Bob's measurements:\t{measurement_1}, {measurement_2}")
+    print("Alice's initial bits:\t{}, {}".format(bit_1, bit_2))
+    print("Bob's measurements:\t{}, {}".format(measurement_1, measurement_2))

@@ -29,10 +29,10 @@ class Operator(Tensor):
         # TODO check unitary
 
     def __repr__(self):
-        return f'Operator for {self.rank // 2}-rank state space.'
+        return 'Operator for {}-rank state space.'.format(self.rank // 2)
 
     def __str__(self):
-        s = f'Operator for {self.rank // 2}-rank state space. Tensor:\n'
+        s = self.__repr__() + ' Tensor:\n'
         s += super().__str__()
         return s
 

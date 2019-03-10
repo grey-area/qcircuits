@@ -48,6 +48,6 @@ if __name__ == '__main__':
         bit, phi = phi.measure(qubit_index=0)
         bits.append(bit)
 
-    print(f'Problem type: {problem_type}')
-    print(f'Measurement: {bits}')
-    print(f'Observed all zeros: {not any(bits)}')
+    print('Problem type: {}'.format(problem_type))
+    print('Measurement: {}'.format(bits))
+    print('Observed all zeros: {}'.format(not any(bits)))

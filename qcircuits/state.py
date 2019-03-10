@@ -31,10 +31,10 @@ class State(Tensor):
             raise RuntimeError('Vector is not a unit vector.')
 
     def __repr__(self):
-        return f'State vector for {self.rank}-rank state space.'
+        return 'State vector for {}-rank state space.'.format(self.rank)
 
     def __str__(self):
-        s = f'State vector for {self.rank}-rank state space. Tensor:\n'
+        s = self.__repr__() + ' Tensor:\n'
         s += super().__str__()
         return s
 

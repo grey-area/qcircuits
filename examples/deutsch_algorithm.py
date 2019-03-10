@@ -27,6 +27,6 @@ if __name__ == '__main__':
 
     measurement, phi = phi.measure(qubit_index=0)
 
-    print(f'f(0): {f(0)}, f(1): {f(1)}')
-    print(f'f(0) == f(1): {f(0) == f(1)}')
-    print(f'Measurement: {measurement}')
+    print('f(0): {}, f(1): {}'.format(f(0), f(1)))
+    print('f(0) == f(1): {}'.format(f(0) == f(1)))
+    print('Measurement: {}'.format(measurement))
