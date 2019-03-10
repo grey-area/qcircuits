@@ -45,9 +45,14 @@ See the :ref:`examples page<examples_page>` for more examples.
 
 Quantum teleportation example:
 
+Quantum circuit:
+
+.. image:: images/teleport.png
+    :scale: 65%
+
+Code:
+
 .. literalinclude:: ../../examples/quantum_teleportation.py
 
 .. include:: ../../README.rst
   :start-after: inclusion-marker3-do-not-remove
-
-

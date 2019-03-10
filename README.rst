@@ -34,7 +34,14 @@ Example usage
 
 .. inclusion-marker2-do-not-remove
 
-Quantum teleportation example::
+Quantum teleportation example:
+
+Quantum circuit:
+
+.. image:: docs/source/images/teleport.png
+    :scale: 65%
+
+Code::
 
     import qcircuits as qc
 
