@@ -55,6 +55,39 @@ class State(Tensor):
 
         return np.sum(np.conj(self._t) * arg._t)
 
+    def permute(self, axes, inverse=False):
+        """
+        Permute the qubits in the state. Equivalent to crossing
+        wires in a circuit.
+
+        Parameters
+        ----------
+        axes : list of int
+            Permute the qubits according to the values given.
+        inverse : bool
+            If true, perform the inverse permutation of the qubits.
+        """
+
+        if inverse:
+            axes = np.argsort(axes)
+
+        self._t = np.transpose(self._t, axes)
+
+    def swap_qubits(self, axis1, axis2):
+        """
+        Swap two qubits in the state. Equivalent to crossing
+        wires in a circuit.
+
+        Parameters
+        ----------
+        axis1 : int
+            First axis.
+        axis2 : int
+            Second axis.
+        """
+
+        self._t = np.swapaxes(self._t, axis1, axis2)
+
     @property
     def probabilities(self):
         """
