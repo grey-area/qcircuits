@@ -66,21 +66,21 @@ Code::
     phi = CNOT(phi, qubit_indices=[0, 1])
     phi = H(phi, qubit_indices=[0])
 
-    # Alice measures her two qubits, and transmits the
-    # two classical bits to Bob.
-    M1, phi = phi.measure(qubit_index=0)
-    M2, bob = phi.measure(qubit_index=0)
+    # Alice measures the first two bits, and transmits the classical
+    # bits to Bob.
+    # The only uncollapsed part of the state vector is Bob's.
+    M1, M2 = phi.measure(qubit_indices=[0, 1], remove=True)
 
-    # Bob applies gates to his qubit conditionally on
-    # the classical bits he receives.
-    # sends to Bob
+    # Apply X and/or Z gates to third qubit depending on measurements
     if M2:
-        bob = X(bob)
+        print('First bit 1, applying X\n')
+        phi = X(phi)
     if M1:
-        bob = Z(bob)
+        print('Second bit 1, applying Z\n')
+        phi = Z(phi)
 
     print('Original state:', alice)
-    print('\nTeleported state:', bob)
+    print('\nTeleported state:', phi)
 
 .. inclusion-marker3-do-not-remove
 

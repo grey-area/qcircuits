@@ -43,10 +43,7 @@ if __name__ == '__main__':
     phi = U_f(phi)
     phi = H_d(phi, qubit_indices=range(d))
 
-    bits = []
-    for d_i in range(d):
-        bit, phi = phi.measure(qubit_index=0)
-        bits.append(bit)
+    bits = phi.measure(qubit_indices=range(d))
 
     print('Problem type: {}'.format(problem_type))
     print('Measurement: {}'.format(bits))

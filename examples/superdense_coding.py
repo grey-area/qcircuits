@@ -33,8 +33,7 @@ if __name__ == '__main__':
     # Bob decodes the two bits
     phi = CNOT(phi)
     phi = H(phi, qubit_indices=[0])
-    measurement_1, phi = phi.measure(qubit_index=0)
-    measurement_2, _ = phi.measure(qubit_index=0)
+    measurements = phi.measure()
 
     print("Alice's initial bits:\t{}, {}".format(bit_1, bit_2))
-    print("Bob's measurements:\t{}, {}".format(measurement_1, measurement_2))
+    print("Bob's measurements:\t{}, {}".format(measurements[0], measurements[1]))

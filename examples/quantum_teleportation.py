@@ -30,17 +30,16 @@ if __name__ == '__main__':
     phi = H(phi, qubit_indices=[0])
 
     # Measure the first two bits
-    M1, phi = phi.measure(qubit_index=0)
     # The only uncollapsed part of the state vector is Bob's
-    M2, bob = phi.measure(qubit_index=0)
+    M1, M2 = phi.measure(qubit_indices=[0, 1], remove=True)
 
     # Apply X and/or Z gates to third qubit depending on measurements
     if M2:
         print('First bit 1, applying X\n')
-        bob = X(bob)
+        phi = X(phi)
     if M1:
         print('Second bit 1, applying Z\n')
-        bob = Z(bob)
+        phi = Z(phi)
 
     print('Original state:', alice)
-    print('\nTeleported state:', bob)
+    print('\nTeleported state:', phi)

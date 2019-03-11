@@ -88,40 +88,85 @@ class State(Tensor):
         amp.flags.writeable = False
         return amp
 
-    # TODO measure wrt more than 1 qubit?
-    # TODO option to reduce state vector or not
-    # TODO modify the state, rather than returning a state
-    def measure(self, qubit_index):
+
+    def measure(self, qubit_indices=None, remove=False):
         """
         Measure the state with respect to the computational bases
-        of the qubit indicated by `qubit_index`.
+        of the qubits indicated by `qubit_indices`.
+        Unlike operator application, with returns the resulting state,
+        measuring a state will modify the state itself. If no indices
+        are indicated, the whole state is measured.
 
         Parameters
         ----------
-        qubit_index : int
-            Indicates the qubit whose computational bases the
-            measurement of the state will be made for.
+        qubit_indices : int or iterable
+            An index or indices indicating the qubit(s) whose
+            computational bases the measurement of the state will be
+            made with respect to. If no `qubit_indices` are given,
+            the whole state is measured.
+        remove : bool
+            Indicates whether the measured qubits should be removed from
+            the state vector.
 
         Returns
         -------
-        int
-            The measurement outcome for the qubit.
-        State
-            The state vector after the measurement, with the measured
-            qubit removed from the state (i.e., with the rank of the
-            underlying tensor reduced by 1).
+        int or tuple of int
+            The measurement outcomes for the measured qubit(s).
+            If the `qubit_indices` parameter is supplied as an int,
+            an int is returned, otherwise a tuple.
         """
 
-        if qubit_index < 0 or qubit_index >= self.rank:
+        # If an int argument for qubit_indices is supplied, the return
+        # value should be an int giving the single measurement outcome.
+        # Otherwise, qubit_indices should be an iterable type and the
+        # return type will be a tuple of measurements.
+        int_arg = False
+        if isinstance(qubit_indices, int):
+            qubit_indices = [qubit_indices]
+            int_arg = True
+        # If no indices are supplied, the whole state should be measured
+        if qubit_indices is None:
+            qubit_indices = range(self.rank)
+
+        qubit_indices = list(qubit_indices)
+
+        if min(qubit_indices) < 0 or max(qubit_indices) >= self.rank:
             raise ValueError('Trying to measure qubit index i not 0<=i<d, '
                              'where d is the rank of the state vector.')
 
-        state = np.swapaxes(self._t, 0, qubit_index)
-        ps = np.reshape(np.real(state * np.conj(state)), (2, -1)).sum(axis=1)
-        bit = np.random.choice([0, 1], p=ps)
-        p = ps[bit]
-        state = state[bit, ...] / np.sqrt(p)
-        return bit, State(state)
+        if len(qubit_indices) != len(set(qubit_indices)):
+            raise ValueError('Qubit indices list contains repeated elements.')
+
+        # The probability of each outcome for the qubits being measured
+        num_outcomes = 2**len(qubit_indices)
+        unmeasured_indices = list(set(range(self.rank)) - set(qubit_indices))
+        permute = qubit_indices + unmeasured_indices
+        amplitudes = np.transpose(self._t, permute)
+        ps = np.reshape(np.real(amplitudes * np.conj(amplitudes)), (num_outcomes, -1)).sum(axis=1)
+
+        # The binary representation of the measured state
+        outcome = np.random.choice(num_outcomes, p=ps)
+        bits = tuple([outcome >> i & 1 for i in range(len(qubit_indices)-1, -1, -1)])
+
+        # The state of the remaining qubits post-measurement
+        p = ps[outcome]
+        collapsed_amplitudes = amplitudes[bits] / np.sqrt(p)
+
+        # If the measured qubits are still to be part of the state
+        # vector, put those axes back
+        if remove:
+            self._t = collapsed_amplitudes
+        else:
+            amplitudes = np.zeros_like(amplitudes)
+            amplitudes[bits] = collapsed_amplitudes
+            self._t = np.transpose(amplitudes, np.argsort(permute))
+
+        # If the qubit_indices argument was an int, return the
+        # single measurement as an int rather than a tuple
+        if int_arg:
+            bits = bits[0]
+
+        return bits
 
 
 # Factory functions for building States

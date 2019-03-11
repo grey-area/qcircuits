@@ -25,7 +25,7 @@ if __name__ == '__main__':
     phi = U_f(phi)
     phi = H(phi, qubit_indices=[0])
 
-    measurement, phi = phi.measure(qubit_index=0)
+    measurement = phi.measure(qubit_indices=0)
 
     print('f(0): {}, f(1): {}'.format(f(0), f(1)))
     print('f(0) == f(1): {}'.format(f(0) == f(1)))

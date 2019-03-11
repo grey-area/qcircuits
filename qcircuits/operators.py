@@ -1,8 +1,11 @@
 """
-The operators module contains the Operator class, instances of which represent Operators on vector spaces for multi-qubit systems, and factory functions for creating specific operators.
+The operators module contains the Operator class, instances of which
+represent Operators on vector spaces for multi-qubit systems, and
+factory functions for creating specific operators.
 
-Each of the factory functions (but not the Operator class) is aliased at the top-level module, so that, for example, one can call ``qcircuits.Hadamard()``
-instead of ``qcircuits.state.Hadamard()``.
+Each of the factory functions (but not the Operator class) is aliased
+at the top-level module, so that, for example, one can call
+``qcircuits.Hadamard()`` instead of ``qcircuits.state.Hadamard()``.
 """
 
 
@@ -58,7 +61,8 @@ class Operator(Tensor):
             If the operator is applied to a state vector for a larger
             quantum system, the user must supply a list of the indices
             of the qubits to which the operator is to be applied.
-            These must be in numerical order.
+            These can also be used to apply the operator to the qubits
+            in arbitrary order.
 
         Returns
         -------
@@ -72,9 +76,6 @@ class Operator(Tensor):
             qubit_indices = list(qubit_indices)
 
         if qubit_indices is not None:
-            if sorted(qubit_indices) != qubit_indices:
-                raise NotImplementedError('Operator cannot be applied to indices out of order. ' \
-                                          'Supplied qubit indices must be in ascending order.')
             if len(set(qubit_indices)) != len(qubit_indices):
                 raise ValueError('Qubit indices list contains repeated elements.')
 
@@ -127,7 +128,9 @@ class Operator(Tensor):
         # This could be avoided with einsum, but it's easier to work with tensordot.
         elif qubit_indices is not None:
             permute = list(range(len(qubit_indices), d))
-            for i, v in enumerate(qubit_indices):
+            # We also need to permute the indices if the qubit_indices are
+            # supplied out-of-order.
+            for i, v in zip(np.argsort(qubit_indices), np.sort(qubit_indices)):
                 permute.insert(v, i)
             result = np.transpose(result, permute)
 
