@@ -39,6 +39,27 @@ class Operator(Tensor):
         s += super().__str__()
         return s
 
+
+    @property
+    def adj(self):
+        """
+        Get the adjoint/inverse of this operator,
+        :math:`A^{\dagger} = (A^{*})^{T}`. As the operator is unitary,
+        :math:`A A^{\dagger} = I`.
+
+        Returns
+        -------
+        Operator
+            The adjoint operator.
+        """
+
+        d = self.rank
+        permutation = [0] * d
+        permutation[::2] = range(1, d, 2)
+        permutation[1::2] = range(0, d, 2)
+        t = np.conj(self._t).transpose(permutation)
+        return Operator(t)
+
     # Compose this operator with another operator, or apply it to a state vector
     # TODO break up this function
     def __call__(self, arg, qubit_indices=None):

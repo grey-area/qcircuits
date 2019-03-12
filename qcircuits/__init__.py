@@ -6,4 +6,4 @@ from qcircuits.operators import CNOT, Toffoli, Swap, SqrtSwap
 from qcircuits.operators import ControlledU, U_f
 
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'

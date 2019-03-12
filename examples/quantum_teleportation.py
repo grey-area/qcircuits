@@ -11,19 +11,17 @@ import qcircuits as qc
 # Alice's state by applying operators based on the measurement outcomes.
 
 
-if __name__ == '__main__':
+def quantum_teleportation(alice_state):
     # Get operators we will need
     CNOT = qc.CNOT()
     H = qc.Hadamard()
     X = qc.PauliX()
     Z = qc.PauliZ()
 
-    # Alice's original state to be teleported to Bob
-    alice = qc.qubit(theta=1.5, phi=0.5, global_phase=0.2)
     # The prepared, shared Bell state
     bell = qc.bell_state(0, 0)
     # The whole state vector
-    phi = alice * bell
+    phi = alice_state * bell
 
     # Apply CNOT and Hadamard gate
     phi = CNOT(phi, qubit_indices=[0, 1])
@@ -35,11 +33,19 @@ if __name__ == '__main__':
 
     # Apply X and/or Z gates to third qubit depending on measurements
     if M2:
-        print('First bit 1, applying X\n')
         phi = X(phi)
     if M1:
-        print('Second bit 1, applying Z\n')
         phi = Z(phi)
 
+    return phi
+
+
+if __name__ == '__main__':
+    # Alice's original state to be teleported to Bob
+    alice = qc.qubit(theta=1.5, phi=0.5, global_phase=0.2)
+
+    # Bob's state after quantum teleportation
+    bob = quantum_teleportation(alice)
+
     print('Original state:', alice)
-    print('\nTeleported state:', phi)
+    print('\nTeleported state:', bob)

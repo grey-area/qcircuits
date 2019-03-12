@@ -55,7 +55,7 @@ class State(Tensor):
 
         return np.sum(np.conj(self._t) * arg._t)
 
-    def permute(self, axes, inverse=False):
+    def permute_qubits(self, axes, inverse=False):
         """
         Permute the qubits in the state. Equivalent to crossing
         wires in a circuit.
@@ -243,6 +243,10 @@ def qubit(*, alpha=None, beta=None,
     # but not both
     if all([v is not None for v in [alpha, beta]]) and all([v is None for v in [theta, phi]]):
         # alpha and beta specify the amplitudes of |0⟩ and |1⟩ directly
+
+        if abs(np.real(np.conj(alpha) * alpha + np.conj(beta) * beta)) - 1 > 1e-4:
+            raise ValueError('Qubit probabilities should sum to 1.')
+
         tensor = np.zeros(2, dtype=np.complex128)
         tensor[0] = alpha
         tensor[1] = beta

@@ -15,11 +15,16 @@ def construct_problem():
     return f
 
 
-if __name__ == '__main__':
-    f = construct_problem()
+def quantum_parallelism(f):
     U_f = qc.U_f(f, d=2)
     H = qc.Hadamard()
 
     phi = qc.zeros(2)
     phi = H(phi, qubit_indices=[0])
     phi = U_f(phi)
+
+
+if __name__ == '__main__':
+    f = construct_problem()
+
+    quantum_parallelism(f)
