@@ -19,6 +19,6 @@ if __name__ == '__main__':
 
     for x, y in product([0, 1], repeat=2):
 
-        print(f'\nInput: {x} {y}')
+        print('\nInput: {} {}'.format(x, y))
         print('Bell state:')
         print(bell_state(x, y))

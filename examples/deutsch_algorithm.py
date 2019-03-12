@@ -16,8 +16,7 @@ def construct_problem():
     return f
 
 
-if __name__ == '__main__':
-    f = construct_problem()
+def deutsch_algorithm(f):
     U_f = qc.U_f(f, d=2)
     H = qc.Hadamard()
 
@@ -25,8 +24,16 @@ if __name__ == '__main__':
     phi = U_f(phi)
     phi = H(phi, qubit_indices=[0])
 
-    measurement, phi = phi.measure(qubit_index=0)
+    measurement = phi.measure(qubit_indices=0)
+    return measurement
 
-    print(f'f(0): {f(0)}, f(1): {f(1)}')
-    print(f'f(0) == f(1): {f(0) == f(1)}')
-    print(f'Measurement: {measurement}')
+
+if __name__ == '__main__':
+    f = construct_problem()
+    parity = f(0) == f(1)
+
+    measurement = deutsch_algorithm(f)
+
+    print('f(0): {}, f(1): {}'.format(f(0), f(1)))
+    print('f(0) == f(1): {}'.format(parity))
+    print('Measurement: {}'.format(measurement))

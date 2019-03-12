@@ -1,5 +1,6 @@
 import qcircuits as qc
 import numpy as np
+import random
 
 
 # Deutsch-Jorza Algorithhm:
@@ -10,15 +11,13 @@ import numpy as np
 
 
 # Construct a Boolean function that is constant or balanced
-def construct_problem(d=1):
+def construct_problem(d=1, problem_type='constant'):
     num_inputs = 2**d
     answers = np.zeros(num_inputs, dtype=np.int32)
 
-    if np.random.random() < 0.5: # function is constant
-        problem_type = 'constant'
+    if problem_type == 'constant':
         answers[:] = int(np.random.random() < 0.5)
     else: # function is balanced
-        problem_type = 'balanced'
         indices = np.random.choice(num_inputs, size=num_inputs//2, replace=False)
         answers[indices] = 1
 
@@ -27,27 +26,31 @@ def construct_problem(d=1):
 
         return answers[index]
 
-    return f, problem_type
+    return f
+
+
+def deutsch_jorza_algorithm(d, f):
+    # The operators we will need
+    U_f = qc.U_f(f, d=d+1)
+    H_d = qc.Hadamard(d)
+    H = qc.Hadamard()
+
+    state = qc.zeros(d) * qc.ones(1)
+    state = (H_d * H)(state)
+    state = U_f(state)
+    state = H_d(state, qubit_indices=range(d))
+
+    measurements = state.measure(qubit_indices=range(d))
+    return measurements
 
 
 if __name__ == '__main__':
     d = 10
-    f, problem_type = construct_problem(d=d)
-    U_f = qc.U_f(f, d=d+1)
+    problem_type = random.choice(['constant', 'balanced'])
 
-    H_d = qc.Hadamard(d)
-    H = qc.Hadamard()
+    f = construct_problem(d, problem_type)
+    measurements = deutsch_jorza_algorithm(d, f)
 
-    phi = qc.zeros(d) * qc.ones(1)
-    phi = (H_d * H)(phi)
-    phi = U_f(phi)
-    phi = H_d(phi, qubit_indices=range(d))
-
-    bits = []
-    for d_i in range(d):
-        bit, phi = phi.measure(qubit_index=0)
-        bits.append(bit)
-
-    print(f'Problem type: {problem_type}')
-    print(f'Measurement: {bits}')
-    print(f'Observed all zeros: {not any(bits)}')
+    print('Problem type: {}'.format(problem_type))
+    print('Measurement: {}'.format(measurements))
+    print('Observed all zeros: {}'.format(not any(measurements)))

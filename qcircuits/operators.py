@@ -1,3 +1,14 @@
+"""
+The operators module contains the Operator class, instances of which
+represent Operators on vector spaces for multi-qubit systems, and
+factory functions for creating specific operators.
+
+Each of the factory functions (but not the Operator class) is aliased
+at the top-level module, so that, for example, one can call
+``qcircuits.Hadamard()`` instead of ``qcircuits.state.Hadamard()``.
+"""
+
+
 from itertools import product
 
 import numpy as np
@@ -21,12 +32,33 @@ class Operator(Tensor):
         # TODO check unitary
 
     def __repr__(self):
-        return f'Operator for {self.rank // 2}-rank state space.'
+        return 'Operator for {}-rank state space.'.format(self.rank // 2)
 
     def __str__(self):
-        s = f'Operator for {self.rank // 2}-rank state space. Tensor:\n'
+        s = self.__repr__() + ' Tensor:\n'
         s += super().__str__()
         return s
+
+
+    @property
+    def adj(self):
+        """
+        Get the adjoint/inverse of this operator,
+        :math:`A^{\dagger} = (A^{*})^{T}`. As the operator is unitary,
+        :math:`A A^{\dagger} = I`.
+
+        Returns
+        -------
+        Operator
+            The adjoint operator.
+        """
+
+        d = self.rank
+        permutation = [0] * d
+        permutation[::2] = range(1, d, 2)
+        permutation[1::2] = range(0, d, 2)
+        t = np.conj(self._t).transpose(permutation)
+        return Operator(t)
 
     # Compose this operator with another operator, or apply it to a state vector
     # TODO break up this function
@@ -50,7 +82,8 @@ class Operator(Tensor):
             If the operator is applied to a state vector for a larger
             quantum system, the user must supply a list of the indices
             of the qubits to which the operator is to be applied.
-            These must be in numerical order.
+            These can also be used to apply the operator to the qubits
+            in arbitrary order.
 
         Returns
         -------
@@ -64,9 +97,6 @@ class Operator(Tensor):
             qubit_indices = list(qubit_indices)
 
         if qubit_indices is not None:
-            if sorted(qubit_indices) != qubit_indices:
-                raise NotImplementedError('Operator cannot be applied to indices out of order. ' \
-                                          'Supplied qubit indices must be in ascending order.')
             if len(set(qubit_indices)) != len(qubit_indices):
                 raise ValueError('Qubit indices list contains repeated elements.')
 
@@ -119,7 +149,9 @@ class Operator(Tensor):
         # This could be avoided with einsum, but it's easier to work with tensordot.
         elif qubit_indices is not None:
             permute = list(range(len(qubit_indices), d))
-            for i, v in enumerate(qubit_indices):
+            # We also need to permute the indices if the qubit_indices are
+            # supplied out-of-order.
+            for i, v in zip(np.argsort(qubit_indices), np.sort(qubit_indices)):
                 permute.insert(v, i)
             result = np.transpose(result, permute)
 
@@ -145,7 +177,7 @@ def Identity(d=1):
 
     See Also
     --------
-    PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT
+    PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -172,7 +204,7 @@ def PauliX(d=1):
 
     See Also
     --------
-    Identity, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT
+    Identity, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -198,7 +230,7 @@ def PauliY(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliZ, Hadamard, Phase, SqrtNot, CNOT
+    Identity, PauliX, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -225,7 +257,7 @@ def PauliZ(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, Hadamard, Phase, SqrtNot, CNOT
+    Identity, PauliX, PauliY, Hadamard, Phase, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
@@ -251,7 +283,7 @@ def Hadamard(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Phase, SqrtNot, CNOT
+    Identity, PauliX, PauliY, PauliZ, Phase, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
     return Operator(1/np.sqrt(2) *
@@ -277,7 +309,7 @@ def Phase(phi=np.pi/2, d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, SqrtNot, CNOT
+    Identity, PauliX, PauliY, PauliZ, Hadamard, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -304,7 +336,7 @@ def SqrtNot(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -325,7 +357,7 @@ def CNOT():
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Toffoli, SqrtNot
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -337,6 +369,37 @@ def CNOT():
                                                 [ 0.0, 0.0]],
                                                [[ 0.0, 1.0],
                                                 [ 1.0, 0.0]]]]))
+
+
+def Toffoli():
+    """
+    Produce the three-qubit Toffoli operator, which flips the third bit
+    if the first two bits are set.
+    Maps \|110⟩ -> \|111⟩, \|111⟩ -> \|110⟩, and otherwise acts as the
+    identity.
+
+    Returns
+    -------
+    Operator
+        A rank 6 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT, SqrtNot
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    d = 3
+    shape = [2] * 2 * d
+    t = np.zeros(shape, dtype=np.complex128)
+
+    # Fill in the operator as the Identity operator.
+    t[:] = Identity(d)[:]
+    # In the case that the first two bits are set, it acts on the third
+    # bit as the PauliX operator.
+    t[:, 1, :, 1, ...] = (Identity(2) * PauliX())[:, 1, :, 1]
+
+    return Operator(t)
 
 
 def Swap():
@@ -352,7 +415,7 @@ def Swap():
     See Also
     --------
     Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
-    CNOT, SqrtSwap, ControlledU, U_f
+    CNOT, Toffoli, SqrtSwap, ControlledU, U_f
     """
 
     return Operator((1.0 + 0.0j) *  np.array([[[[ 1.0, 0.0],
@@ -379,7 +442,7 @@ def SqrtSwap():
     See Also
     --------
     Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
-    CNOT, Swap, ControlledU, U_f
+    CNOT, Toffoli, Swap, ControlledU, U_f
     """
 
     return Operator(np.array([[[[ 1.0,                 0.0],
@@ -413,7 +476,7 @@ def ControlledU(U):
     See Also
     --------
     Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
-    CNOT, Swap, SqrtSwap, U_f
+    CNOT, Toffoli, Swap, SqrtSwap, U_f
     """
 
     d = U.rank // 2 + 1
@@ -448,7 +511,7 @@ def U_f(f, d):
     See Also
     --------
     Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
-    CNOT, Swap, SqrtSwap, ControlledU
+    CNOT, Toffoli, Swap, SqrtSwap, ControlledU
     """
     if d < 2:
         raise ValueError('U_f operator requires rank >= 2.')

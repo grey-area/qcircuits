@@ -1,3 +1,5 @@
+.. _tensors_module:
+
 qcircuits.tensors module
 ========================
 

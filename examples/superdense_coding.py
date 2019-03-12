@@ -10,15 +10,12 @@ import numpy as np
 # then transmits her qubit to Bob, who then measures the system.
 
 
-if __name__ == '__main__':
+def superdense_coding(bit_1, bit_2):
     # Get operators we will need
     CNOT = qc.CNOT()
     H = qc.Hadamard()
     X = qc.PauliX()
     Z = qc.PauliZ()
-
-    # Alice's classical bits she wants to transmit
-    bit_1, bit_2 = np.random.randint(0, 2, size=2)
 
     # The prepared, shared Bell state
     # Initially, half is in Alice's possession, and half in Bob's
@@ -33,8 +30,16 @@ if __name__ == '__main__':
     # Bob decodes the two bits
     phi = CNOT(phi)
     phi = H(phi, qubit_indices=[0])
-    measurement_1, phi = phi.measure(qubit_index=0)
-    measurement_2, _ = phi.measure(qubit_index=0)
+    measurements = phi.measure()
+    return measurements
 
-    print(f"Alice's initial bits:\t{bit_1}, {bit_2}")
-    print(f"Bob's measurements:\t{measurement_1}, {measurement_2}")
+
+if __name__ == '__main__':
+    # Alice's classical bits she wants to transmit
+    bit_1, bit_2 = np.random.randint(0, 2, size=2)
+    
+    # Bob's measurements
+    measurements = superdense_coding(bit_1, bit_2)
+    
+    print("Alice's initial bits:\t{}, {}".format(bit_1, bit_2))
+    print("Bob's measurements:\t{}, {}".format(measurements[0], measurements[1]))
