@@ -11,7 +11,8 @@ Example code producing each of the four entangled Bell states for a two-qubit sy
 The circuit diagram is
 
 .. image:: images/bell.png
-    :scale: 65%
+    :width: 70%
+
 
 where \|x⟩ and \|y⟩ are each one of the computational basis states, \|0⟩ or \|1⟩.
 
@@ -25,7 +26,7 @@ Quantum teleportation
 ---------------------
 
 .. image:: images/teleport.png
-    :scale: 65%
+    :width: 100%
 
 **Code**:
 
@@ -35,7 +36,7 @@ Quantum parallelism
 -------------------
 
 .. image:: images/parallel.png
-    :scale: 55%
+    :width: 100%
 
 **Code**:
 
@@ -45,7 +46,7 @@ Deutsch's algorithm
 -------------------
 
 .. image:: images/deutsch.png
-    :scale: 55%
+    :width: 100%
 
 **Code**:
 
@@ -55,7 +56,7 @@ The Deutsch-Jorza algorithm
 ---------------------------
 
 .. image:: images/deutsch_jorza.png
-    :scale: 45%
+    :width: 100%
 
 **Code**:
 
@@ -65,7 +66,7 @@ Superdense coding
 -----------------
 
 .. image:: images/superdense.png
-    :scale: 65%
+    :width: 100%
 
 **Code**:
 
