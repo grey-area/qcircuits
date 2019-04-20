@@ -68,6 +68,9 @@ class Operator(Tensor):
     def __add__(self, arg):
         return Operator(self._t + arg._t)
 
+    def __sub__(self, arg):
+        return self + (-1) * arg
+
     def __mul__(self, scalar):
         if isinstance(scalar, (float, int, complex)):
             return Operator(scalar * self._t)
@@ -197,7 +200,8 @@ def Identity(d=1):
 
     See Also
     --------
-    PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
+    PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -224,7 +228,8 @@ def PauliX(d=1):
 
     See Also
     --------
-    Identity, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
+    Identity, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -250,7 +255,8 @@ def PauliY(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
+    Identity, PauliX, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -277,7 +283,8 @@ def PauliZ(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, Hadamard, Phase, SqrtNot, CNOT, Toffoli
+    Identity, PauliX, PauliY, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
@@ -303,7 +310,8 @@ def Hadamard(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Phase, SqrtNot, CNOT, Toffoli
+    Identity, PauliX, PauliY, PauliZ, Phase, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
     return Operator(1/np.sqrt(2) *
@@ -329,12 +337,123 @@ def Phase(phi=np.pi/2, d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, SqrtNot, CNOT, Toffoli
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
                               [0.0j, np.exp(phi * 1j)]])).tensor_power(d)
+
+def Rotation(v, theta):
+    """
+    Produce the single-qubit rotation operator.
+    In terms of the Bloch sphere picture of the qubit state, the
+    operator rotates a state through angle theta around vector v.
+
+    Parameters
+    ----------
+    v : list of float
+        A real 3D unit vector around which the qubit's Bloch vector is to be rotated.
+    theta : float
+        The angle through which the qubit's Bloch vector is to be rotated.
+
+    Returns
+    -------
+    Operator
+        A rank 2 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    v = np.array(v)
+    if v.shape != (3,) or abs(v.dot(v) - 1.0) > 1e-8 or not np.all(np.isreal(v)):
+        raise ValueError('Rotation vector v should be a 3D real unit vector.')
+
+    return np.cos(theta/2) * Identity() - 1j * np.sin(theta/2) * (
+        v[0] * PauliX() + v[1] * PauliY() + v[2] * PauliZ())
+
+
+def RotationX(theta):
+    """
+    Produce the single-qubit X-rotation operator.
+    In terms of the Bloch sphere picture of the qubit state, the
+    operator rotates a state through angle theta around the x-axis.
+
+    Parameters
+    ----------
+    theta : float
+        The angle through which the qubit's Bloch vector is to be rotated.
+
+    Returns
+    -------
+    Operator
+        A rank 2 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationY, RotationZ, SqrtNot, CNOT, Toffoli
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    return Rotation([1., 0., 0.], theta)
+
+
+def RotationY(theta):
+    """
+    Produce the single-qubit Y-rotation operator.
+    In terms of the Bloch sphere picture of the qubit state, the
+    operator rotates a state through angle theta around the y-axis.
+
+    Parameters
+    ----------
+    theta : float
+        The angle through which the qubit's Bloch vector is to be rotated.
+
+    Returns
+    -------
+    Operator
+        A rank 2 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationZ, SqrtNot, CNOT, Toffoli
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    return Rotation([0., 1., 0.], theta)
+
+
+def RotationZ(theta):
+    """
+    Produce the single-qubit Z-rotation operator.
+    In terms of the Bloch sphere picture of the qubit state, the
+    operator rotates a state through angle theta around the z-axis.
+
+    Parameters
+    ----------
+    theta : float
+        The angle through which the qubit's Bloch vector is to be rotated.
+
+    Returns
+    -------
+    Operator
+        A rank 2 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, SqrtNot, CNOT, Toffoli
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    return Rotation([0., 0., 1.], theta)
 
 
 def SqrtNot(d=1):
@@ -356,7 +475,8 @@ def SqrtNot(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT, Toffoli
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -377,7 +497,8 @@ def CNOT():
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Toffoli, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, Toffoli, SqrtNot
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -405,7 +526,8 @@ def Toffoli():
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, CNOT, SqrtNot
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -434,7 +556,8 @@ def Swap():
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot
     CNOT, Toffoli, SqrtSwap, ControlledU, U_f
     """
 
@@ -461,7 +584,8 @@ def SqrtSwap():
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot
     CNOT, Toffoli, Swap, ControlledU, U_f
     """
 
@@ -495,7 +619,8 @@ def ControlledU(U):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot
     CNOT, Toffoli, Swap, SqrtSwap, U_f
     """
 
@@ -530,7 +655,8 @@ def U_f(f, d):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot
     CNOT, Toffoli, Swap, SqrtSwap, ControlledU
     """
     if d < 2:
