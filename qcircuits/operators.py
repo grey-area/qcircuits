@@ -29,7 +29,7 @@ class Operator(Tensor):
 
     def __init__(self, tensor):
         super().__init__(tensor)
-        # TODO check unitary
+        # TODO check unitary (maybe only check when applying?)
 
     def __repr__(self):
         s = 'Operator('
@@ -64,7 +64,23 @@ class Operator(Tensor):
         t = np.conj(self._t).transpose(permutation)
         return Operator(t)
 
-    # Compose this operator with another operator, or apply it to a state vector
+
+    def __add__(self, arg):
+        return Operator(self._t + arg._t)
+
+    def __mul__(self, scalar):
+        if isinstance(scalar, (float, int, complex)):
+            return Operator(scalar * self._t)
+        else:
+            return super().__mul__(scalar)
+
+    def __rmul__(self, scalar):
+        if isinstance(scalar, (float, int, complex)):
+            return Operator(scalar * self._t)
+
+    def __truediv__(self, scalar):
+        return Operator(self._t / scalar)
+
     # TODO break up this function
     def __call__(self, arg, qubit_indices=None):
         """

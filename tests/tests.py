@@ -350,6 +350,29 @@ class OperatorUnitaryTests(unittest.TestCase):
             self.assertLess(max_diff, epsilon)
 
 
+class OperatorAdditionScalarMultiplicationTests(unittest.TestCase):
+
+    def setUp(self):
+        pass
+        
+    def test_hadamard(self):
+        """
+        H = (X + Y)/sqrt(2)
+        """
+        H = qc.Hadamard()
+        X = qc.PauliX()
+        Z = qc.PauliZ()
+        H1 = (X + Z) / np.sqrt(2)
+        max_diff = max_absolute_difference(H, H1)
+        self.assertLess(max_diff, epsilon)
+        H2 = (X + Z) * (1 / np.sqrt(2))
+        max_diff = max_absolute_difference(H, H2)
+        self.assertLess(max_diff, epsilon)
+        H3 = 1 / np.sqrt(2) * (Z + X)
+        max_diff = max_absolute_difference(H, H3)
+        self.assertLess(max_diff, epsilon)
+        
+            
 class OperatorCompositionTests(unittest.TestCase):
 
     def setUp(self):
