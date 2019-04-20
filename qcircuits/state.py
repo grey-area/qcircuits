@@ -31,10 +31,14 @@ class State(Tensor):
             raise RuntimeError('Vector is not a unit vector.')
 
     def __repr__(self):
-        return 'State vector for {}-rank state space.'.format(self.rank)
+        s = 'State('
+        s += super().__str__().replace('\n', '\n' + ' ' * len(s))
+        s += ')'
+        return s
 
     def __str__(self):
-        s = self.__repr__() + ' Tensor:\n'
+        s = '{}-qubit state.'.format(self.rank // 2)
+        s += ' Tensor:\n'
         s += super().__str__()
         return s
 

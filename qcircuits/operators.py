@@ -32,10 +32,14 @@ class Operator(Tensor):
         # TODO check unitary
 
     def __repr__(self):
-        return 'Operator for {}-rank state space.'.format(self.rank // 2)
+        s = 'Operator('
+        s += super().__str__().replace('\n', '\n' + ' ' * len(s))
+        s += ')'
+        return s
 
     def __str__(self):
-        s = self.__repr__() + ' Tensor:\n'
+        s = 'Operator for {}-qubit state space.'.format(self.rank // 2)
+        s += ' Tensor:\n'
         s += super().__str__()
         return s
 
