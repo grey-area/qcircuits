@@ -31,6 +31,43 @@ class Operator(Tensor):
         super().__init__(tensor)
         # TODO check unitary (maybe only check when applying?)
 
+
+    @staticmethod
+    def from_matrix(M):
+        """
+        QCircuits represents operators for d-qubit systems with type (d, d) tensors.
+        This function constructs an operator from the more common matrix
+        Kronecker-product representation of the operator.
+
+        Parameters
+        ----------
+        numpy complex128 multidimensional array
+            The matrix representation of the operator.
+
+        Returns
+        -------
+        Operator
+            A d-qubit operator.
+
+        """
+
+        # Check the matrix is square
+        shape = M.shape
+        if len(shape) != 2 or shape[0] != shape[1]:
+            raise ValueError('The matrix should be square.')
+        # Check the dimension is a power of 2
+        d = np.log2(shape[0])
+        if not d.is_integer():
+            raise ValueError('The matrix dimension should be a power of 2.')
+        d = int(d)
+
+        permutation = [0] * 2 * d
+        permutation[::2] = range(0, d)
+        permutation[1::2] = range(d, 2*d)
+
+        return Operator(M.reshape([2] * 2 * d).transpose(permutation))
+
+
     def __repr__(self):
         s = 'Operator('
         s += super().__str__().replace('\n', '\n' + ' ' * len(s))
@@ -63,6 +100,23 @@ class Operator(Tensor):
         permutation[1::2] = range(0, d, 2)
         t = np.conj(self._t).transpose(permutation)
         return Operator(t)
+
+
+    def to_matrix(self):
+        """
+        QCircuits represents operators for d-qubit systems with type (d, d) tensors.
+        This function returns the more common matrix Kronecker-product
+        representation of the operator.
+
+        Returns
+        -------
+        numpy complex128 multidimensional array
+            The matrix representation of the operator.
+        """
+
+        d = len(self.shape) // 2
+        permutation = list(range(0, 2*d, 2)) + list(range(1, 2*d, 2))
+        return self._t.transpose(permutation).reshape(2**d, 2**d)
 
 
     def __add__(self, arg):

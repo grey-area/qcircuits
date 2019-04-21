@@ -510,6 +510,14 @@ class OperatorAdditionScalarMultiplicationTests(unittest.TestCase):
         H3 = 1 / np.sqrt(2) * (Z + X)
         max_diff = max_absolute_difference(H, H3)
         self.assertLess(max_diff, epsilon)
+
+        self.assertLess(
+            max_absolute_difference(
+                np.sqrt(2) * H - Z,
+                X
+            ),
+            epsilon
+        )
         
             
 class OperatorCompositionTests(unittest.TestCase):
@@ -610,7 +618,10 @@ class ApplyingToSubsetsOfQubitsTests(unittest.TestCase):
 class KroneckerProductTests(unittest.TestCase):
 
     def setUp(self):
-        pass
+        self.num_tests = 10
+        self.ds = np.random.randint(1, 8, size=self.num_tests)
+        self.states = [random_state(d) for d in self.ds]
+        self.operators = [random_unitary_operator(d) for d in self.ds]
 
     def test_bitstring_kronecker(self):
         d = 5
@@ -624,24 +635,56 @@ class KroneckerProductTests(unittest.TestCase):
             v2[index] = 1
             self.assertLess(max_absolute_difference(v1, v2), epsilon)
 
-    def test_state_kronecker_reversible_1(self):
+    def test_state_kronecker_reversible_random_1(self):
         num_tests = 10
-        for test_i in range(num_tests):
-            d = np.random.randint(1, 8)
-            s1 = random_state(d)
+        for s1 in self.states:
             v = s1.to_column_vector()
             s2 = qc.State.from_column_vector(v)
             self.assertLess(max_absolute_difference(s1, s2), epsilon)
 
-    def test_state_kronecker_reversible_2(self):
+    def test_state_kronecker_reversible_random_2(self):
         num_tests = 10
-        for test_i in range(num_tests):
-            d = np.random.randint(1, 8)
+        for d in self.ds:
             size = 2**d
             v1 = np.random.normal(size=size) + 1j * np.random.normal(size=size)
             s = qc.State.from_column_vector(v1)
             v2 = s.to_column_vector()
             self.assertLess(max_absolute_difference(v1, v2), epsilon)
+
+    def test_operator_kronecker_reversible_random_1(self):
+        num_tests = 10
+        for o1 in self.operators:
+            M = o1.to_matrix()
+            o2 = qc.Operator.from_matrix(M)
+            self.assertLess(max_absolute_difference(o1, o2), epsilon)
+
+    def test_operator_kronecker_reversible_random_2(self):
+        num_tests = 10
+        for d in self.ds:
+            d = np.random.randint(1, 8)
+            size = [2**d] * 2
+            M1 = np.random.normal(size=size) + 1j * np.random.normal(size=size)
+            o = qc.Operator.from_matrix(M1)
+            M2 = o.to_matrix()
+            self.assertLess(max_absolute_difference(M1, M2), epsilon)
+
+    def test_kronecker_operator_state_application_1(self):
+        for Op, s in zip(self.operators, self.states):
+            v1 = Op(s).to_column_vector()
+            M = Op.to_matrix()
+            x = s.to_column_vector()
+            v2 = M.dot(x)
+            self.assertLess(max_absolute_difference(v1, v2), epsilon)
+
+    def test_kronecker_operator_state_application_2(self):
+        for Op, s in zip(self.operators, self.states):
+            s1 = Op(s)
+            M = Op.to_matrix()
+            x = s.to_column_vector()
+            v = M.dot(x)
+            s2 = qc.State.from_column_vector(v)
+
+            self.assertLess(max_absolute_difference(s1, s2), epsilon)
 
 
 class FastMeasurementTests(unittest.TestCase):
