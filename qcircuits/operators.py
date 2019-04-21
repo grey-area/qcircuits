@@ -181,7 +181,11 @@ class Operator(Tensor):
                 permute.insert(v, i)
             result = np.transpose(result, permute)
 
-        return arg.__class__(result)
+        return_val = arg.__class__(result)
+        if type(return_val) is not Operator:
+            return_val.renormalize_()
+
+        return return_val
 
 
 # Factory functions for building operators

@@ -463,6 +463,31 @@ class OperatorUnitaryTests(unittest.TestCase):
             self.assertLess(max_diff, epsilon)
 
 
+class StateAdditionScalarMultiplicationTests(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_superposition(self):
+        x = qc.positive_superposition()
+        y1 = (qc.zeros() + qc.ones()) / np.sqrt(2)
+        y2 = (qc.zeros() + qc.ones()) * (1 / np.sqrt(2))
+        y3 = (1 / np.sqrt(2)) * (qc.ones() + qc.zeros())
+        y4 = (1 / np.sqrt(2)) * qc.ones() + qc.zeros() / np.sqrt(2)
+        self.assertLess(max_absolute_difference(y1, x), epsilon)
+        self.assertLess(max_absolute_difference(y2, x), epsilon)
+        self.assertLess(max_absolute_difference(y3, x), epsilon)
+        self.assertLess(max_absolute_difference(y4, x), epsilon)
+
+        self.assertLess(
+            max_absolute_difference(
+                np.sqrt(2) * x - qc.ones(),
+                qc.zeros()
+            ),
+            epsilon
+        )
+
+
 class OperatorAdditionScalarMultiplicationTests(unittest.TestCase):
 
     def setUp(self):

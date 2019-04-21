@@ -27,9 +27,6 @@ class State(Tensor):
     def __init__(self, tensor):
         super().__init__(tensor)
 
-        if abs(np.sum(self.probabilities) - 1.0) > 1e-4:
-            raise RuntimeError('Vector is not a unit vector.')
-
     def __repr__(self):
         s = 'State('
         s += super().__str__().replace('\n', '\n' + ' ' * len(s))
@@ -58,6 +55,14 @@ class State(Tensor):
         """
 
         return np.sum(np.conj(self._t) * arg._t)
+
+    def renormalize_(self):
+        """
+        Renormalize the state so that the sum of squared amplitude
+        magnitudes is 1.
+        """
+
+        self._t /= np.sqrt(np.real(self.dot(self)))
 
     def permute_qubits(self, axes, inverse=False):
         """
@@ -92,6 +97,28 @@ class State(Tensor):
 
         self._t = np.swapaxes(self._t, axis1, axis2)
 
+    def __add__(self, arg):
+        return State(self._t + arg._t)
+
+    def __sub__(self, arg):
+        return self + (-1) * arg
+
+    def __neg__(self):
+        return State(-self._t)
+
+    def __mul__(self, scalar):
+        if isinstance(scalar, (float, int, complex)):
+            return State(scalar * self._t)
+        else:
+            return super().__mul__(scalar)
+
+    def __rmul__(self, scalar):
+        if isinstance(scalar, (float, int, complex)):
+            return State(scalar * self._t)
+
+    def __truediv__(self, scalar):
+        return State(self._t / scalar)
+
     @property
     def probabilities(self):
         """
@@ -120,6 +147,9 @@ class State(Tensor):
         numpy complex128 multidimensional array
             The probability amplitudes of the state.
         """
+
+        if abs(np.sum(self.probabilities) - 1.0) > 1e-4:
+            raise RuntimeError('Vector is not a unit vector.')
 
         amp = np.copy(self._t)
         amp.flags.writeable = False
@@ -152,6 +182,9 @@ class State(Tensor):
             If the `qubit_indices` parameter is supplied as an int,
             an int is returned, otherwise a tuple.
         """
+
+        if abs(np.sum(self.probabilities) - 1.0) > 1e-4:
+            raise RuntimeError('Vector is not a unit vector.')
 
         # If an int argument for qubit_indices is supplied, the return
         # value should be an int giving the single measurement outcome.
@@ -202,6 +235,8 @@ class State(Tensor):
         # single measurement as an int rather than a tuple
         if int_arg:
             bits = bits[0]
+
+        self.renormalize_()
 
         return bits
 
