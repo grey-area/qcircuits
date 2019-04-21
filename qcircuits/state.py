@@ -47,6 +47,9 @@ class State(Tensor):
 
         """
 
+        if type(v) is list:
+            v = np.array(v, dtype=np.complex128)
+
         # Check the size is a power of 2
         d = np.log2(v.size)
         if not d.is_integer():

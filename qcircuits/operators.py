@@ -51,6 +51,9 @@ class Operator(Tensor):
 
         """
 
+        if type(M) is list:
+            M = np.array(M, dtype=np.complex128)
+
         # Check the matrix is square
         shape = M.shape
         if len(shape) != 2 or shape[0] != shape[1]:
