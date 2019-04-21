@@ -687,6 +687,58 @@ class KroneckerProductTests(unittest.TestCase):
             self.assertLess(max_absolute_difference(s1, s2), epsilon)
 
 
+class SchmidtTests(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_schmidt_examples(self):
+        self.assertEqual(
+            qc.bell_state().schmidt_number(indices=[0]),
+            2
+        )
+
+        self.assertEqual(
+            qc.positive_superposition(d=2).schmidt_number(indices=[0]),
+            1
+        )
+
+        x = (qc.bitstring(0, 0) + qc.bitstring(0, 1) + qc.bitstring(1, 0)) / np.sqrt(3)
+        self.assertEqual(
+            x.schmidt_number(indices=[0]),
+            2
+        )
+
+    def test_random_schmidt_examples_unentangled(self):
+        num_tests = 10
+        for test_i in range(num_tests):
+            d1 = np.random.randint(1, 6)
+            s1 = random_state(d=d1)
+            d2 = np.random.randint(1, 6)
+            s2 = random_state(d=d2)
+            num = (s1 * s2).schmidt_number(indices=list(range(d1)))
+            self.assertEqual(num, 1)
+
+    def test_unitarily_unchanged(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+
+            x = qc.positive_superposition(d=2)
+            U = random_unitary_operator(d=1) * random_unitary_operator(d=1)
+            self.assertEqual(
+                U(x).schmidt_number(indices=[0]),
+                1
+            )
+
+            x = qc.bell_state()
+            U = random_unitary_operator(d=1) * random_unitary_operator(d=1)
+            self.assertEqual(
+                U(x).schmidt_number(indices=[0]),
+                2
+            )
+
+
 class FastMeasurementTests(unittest.TestCase):
 
     def test_bitstring_measurement(self):

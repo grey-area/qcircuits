@@ -197,6 +197,45 @@ class State(Tensor):
         return amp
 
 
+    # Todo: also return schmidt bases
+    def schmidt_number(self, indices):
+        """
+        For a d-qubit state (d>1) in vector space `A\otimes B`,
+        get the Schmidt number, a measure of entanglement,
+        for the Schmidt decomposition of that
+        state for the subsystems A and B.
+
+        Parameters
+        ----------
+        indices : list of int
+            The qubit indices for one of the subsystems.
+            This should include at least one qubit index
+            and also exclude at least one index.
+
+        Returns
+        -------
+        int
+            The Schmidt number.
+        """
+
+        if len(indices) in [0, self.rank]:
+            raise ValueError('At least one qubit index should be included '
+                             'and at least one should be excluded')
+        if min(indices) < 0 or max(indices) >= self.rank:
+            raise ValueError('Indices should be between 0 and d-1 for a d-qubit state.')
+        if not all([isinstance(idx, int) for idx in indices]):
+            raise ValueError('Indices should be integers.')
+
+        included_indices = set(indices)
+        excluded_indices = set(range(self.rank)) - included_indices
+        permutation = list(included_indices) + list(excluded_indices)
+        M = self._t.transpose(permutation).reshape(
+            (2**len(included_indices), 2**len(excluded_indices))
+        )
+        U, D, V = np.linalg.svd(M)
+        return np.sum(D > 1e-10)
+
+
     def measure(self, qubit_indices=None, remove=False):
         """
         Measure the state with respect to the computational bases
