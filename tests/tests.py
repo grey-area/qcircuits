@@ -233,6 +233,119 @@ class OperatorIdentitiesTest(unittest.TestCase):
             diff = max_absolute_difference(U(U), I)
             self.assertLess(diff, epsilon)
 
+        I = qc.Identity(2)
+        C = qc.CNOT()
+        self.assertLess(
+            max_absolute_difference(
+                C(C), I), epsilon)
+
+
+    def test_pauli_identities(self):
+        X = qc.PauliX()
+        Y = qc.PauliY()
+        Z = qc.PauliZ()
+
+        self.assertLess(
+            max_absolute_difference(
+                X(Y), 1j*Z), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                Y(X), -1j*Z), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                Y(Z), 1j*X), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                Z(Y), -1j*X), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                Z(X), 1j*Y), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                X(Z), -1j*Y), epsilon)
+
+    def test_hadamard_pauli_identities(self):
+        X = qc.PauliX()
+        Y = qc.PauliY()
+        Z = qc.PauliZ()
+        H = qc.Hadamard()
+
+        self.assertLess(
+            max_absolute_difference(
+                H(X(H)), Z), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                H(Z(H)), X), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                H(Y(H)), -Y), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                X(Y(X)), -Y), epsilon)
+
+    def test_phase_identities(self):
+        Z = qc.PauliZ()
+        S = qc.Phase()
+        T = qc.PiBy8()
+        H = qc.Hadamard()
+
+        self.assertLess(
+            max_absolute_difference(
+                T(T), S), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                S(S), Z), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                T(T(T(T))), Z), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                T,
+                np.exp(1j * np.pi/8) * qc.RotationZ(np.pi/4)
+            ),
+            epsilon
+        )
+        self.assertLess(
+            max_absolute_difference(
+                S,
+                np.exp(1j * np.pi/4) * qc.RotationZ(np.pi/2)
+            ),
+            epsilon
+        )
+        self.assertLess(
+            max_absolute_difference(
+                H(T(H)),
+                np.exp(1j * np.pi/8) * qc.RotationX(np.pi/4)
+            ),
+            epsilon
+        )
+
+    def test_rotations_equal_pauli(self):
+        X = qc.PauliX()
+        Y = qc.PauliY()
+        Z = qc.PauliZ()
+        Rx = qc.RotationX(np.pi)
+        Ry = qc.RotationY(np.pi)
+        Rz = qc.RotationZ(np.pi)
+
+        self.assertLess(
+            max_absolute_difference(
+                1j*Rx, X), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                1j*Ry, Y), epsilon)
+        self.assertLess(
+            max_absolute_difference(
+                1j*Rz, Z), epsilon)
+
+    def test_phase_square(self):
+        S = qc.Phase()
+        Z = qc.PauliZ()
+
+        self.assertLess(
+            max_absolute_difference(
+                S(S), Z), epsilon)
+
     def test_sqrtnot_squared_equals_X(self):
         R1 = qc.SqrtNot()(qc.SqrtNot())
         R2 = qc.PauliX()
