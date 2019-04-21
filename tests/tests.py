@@ -2,6 +2,7 @@ import unittest
 
 import copy
 import numpy as np
+from itertools import product
 from scipy.stats import unitary_group, dirichlet
 
 import sys
@@ -604,6 +605,43 @@ class ApplyingToSubsetsOfQubitsTests(unittest.TestCase):
             result2 = M_subset(x, qubit_indices=apply_to_indices)
             max_diff = max_absolute_difference(result1, result2)
             self.assertLess(max_diff, epsilon)
+
+
+class KroneckerProductTests(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_bitstring_kronecker(self):
+        d = 5
+        for bits in product([0, 1], repeat=d):
+            bitstring = qc.bitstring(*bits)
+            v1 = bitstring.to_column_vector()
+            v2 = np.zeros(2**d)
+            index = 0
+            for b_i, b in enumerate(bits):
+                index += b * 2**(d - b_i - 1)
+            v2[index] = 1
+            self.assertLess(max_absolute_difference(v1, v2), epsilon)
+
+    def test_state_kronecker_reversible_1(self):
+        num_tests = 10
+        for test_i in range(num_tests):
+            d = np.random.randint(1, 8)
+            s1 = random_state(d)
+            v = s1.to_column_vector()
+            s2 = qc.State.from_column_vector(v)
+            self.assertLess(max_absolute_difference(s1, s2), epsilon)
+
+    def test_state_kronecker_reversible_2(self):
+        num_tests = 10
+        for test_i in range(num_tests):
+            d = np.random.randint(1, 8)
+            size = 2**d
+            v1 = np.random.normal(size=size) + 1j * np.random.normal(size=size)
+            s = qc.State.from_column_vector(v1)
+            v2 = s.to_column_vector()
+            self.assertLess(max_absolute_difference(v1, v2), epsilon)
 
 
 class FastMeasurementTests(unittest.TestCase):

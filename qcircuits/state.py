@@ -27,6 +27,33 @@ class State(Tensor):
     def __init__(self, tensor):
         super().__init__(tensor)
 
+    @staticmethod
+    def from_column_vector(v):
+        """
+        QCircuits represents d-qubit states by type (d, 0) tensors.
+        This function constructs a state from the more common column
+        vector Kronecker-product representation of the state.
+
+        Parameters
+        ----------
+        numpy complex128 multidimensional array
+            The column vector representation of the state,
+            of size 2**d.
+
+        Returns
+        -------
+        State
+            A d-qubit state.
+
+        """
+
+        # Check the size is a power of 2
+        d = np.log2(v.size)
+        if not d.is_integer():
+            raise ValueError('Vector size should be a power of 2.')
+        d = int(d)
+        return State(v.reshape([2]*d))
+
     def __repr__(self):
         s = 'State('
         s += super().__str__().replace('\n', '\n' + ' ' * len(s))
@@ -63,6 +90,20 @@ class State(Tensor):
         """
 
         self._t /= np.sqrt(np.real(self.dot(self)))
+
+    def to_column_vector(self):
+        """
+        QCircuits represents d-qubit states by type (d, 0) tensors.
+        This function returns the more common column vector Kronecker-product
+        representation of the state.
+
+        Returns
+        -------
+        numpy complex128 multidimensional array
+            The column vector representation of the state.
+        """
+
+        return self._t.flatten()
 
     def permute_qubits(self, axes, inverse=False):
         """
