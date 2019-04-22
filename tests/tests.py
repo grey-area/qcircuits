@@ -158,6 +158,27 @@ class StateSwapPermuteTests(unittest.TestCase):
             diff = max_absolute_difference(state, state_copy)
             self.assertLess(diff, epsilon)
 
+    def test_permutation_of_tensor_product(self):
+        """
+        Test that producing a state by the tensor product of two
+        states is the same as taking the tensor product in reverse
+        order and then permuting.
+        """
+
+        num_tests = 10
+        for test_i in range(num_tests):
+            d1 = np.random.randint(3, 6)
+            d2 = np.random.randint(3, 6)
+            s1 = random_state(d1)
+            s2 = random_state(d2)
+            s = s1 * s2
+            s_reverse = copy.deepcopy(s2 * s1)
+            idx = list(range(d1, d1+d2)) + list(range(0, d1))
+            s.permute_qubits(idx)
+            self.assertLess(
+                max_absolute_difference(s, s_reverse),
+                epsilon)
+
     def test_operator_sub_application_equivalence_to_perumation(self):
         num_tests = 10
         for test_i in range(num_tests):
@@ -200,6 +221,64 @@ class StateSwapPermuteTests(unittest.TestCase):
             self.assertLess(diff, epsilon)
 
 
+class OperatorSwapPermuteTests(unittest.TestCase):
+    def test_permute_reverse(self):
+        """
+        Test that permuting and then reversing the permutation
+        results in the original operator.
+        """
+
+        num_tests = 10
+        for test_i in range(num_tests):
+            d = np.random.randint(3, 8)
+            operator = random_unitary_operator(d)
+            indices = np.arange(d)
+            np.random.shuffle(indices)
+            operator_copy = copy.deepcopy(operator)
+            operator.permute_qubits(indices)
+            operator.permute_qubits(indices, inverse=True)
+            diff = max_absolute_difference(operator, operator_copy)
+            self.assertLess(diff, epsilon)
+
+    def test_swap_reverse(self):
+        """
+        Test that swapping qubits and then swapping back results
+        in the original operator.
+        """
+
+        num_tests = 10
+        for test_i in range(num_tests):
+            d = np.random.randint(3, 8)
+            op = random_unitary_operator(d)
+            i1, i2 = np.random.choice(d, replace=False, size=2)
+            op_copy = copy.deepcopy(op)
+            op.swap_qubits(i1, i2)
+            op.swap_qubits(i1, i2)
+            diff = max_absolute_difference(op, op_copy)
+            self.assertLess(diff, epsilon)
+
+    def test_permutation_of_tensor_product(self):
+        """
+        Test that producing an operator by the tensor product of two
+        operators is the same as taking the tensor product in reverse
+        order and then permuting.
+        """
+
+        num_tests = 10
+        for test_i in range(num_tests):
+            d1 = np.random.randint(3, 6)
+            d2 = np.random.randint(3, 6)
+            Op1 = random_unitary_operator(d1)
+            Op2 = random_unitary_operator(d2)
+            Op = Op1 * Op2
+            Op_reverse = copy.deepcopy(Op2 * Op1)
+            idx = list(range(d1, d1+d2)) + list(range(0, d1))
+            Op.permute_qubits(idx)
+            self.assertLess(
+                max_absolute_difference(Op, Op_reverse),
+                epsilon)
+
+
 class TensorProductTests(unittest.TestCase):
     def test_tensor_product(self):
         """
@@ -217,6 +296,86 @@ class TensorProductTests(unittest.TestCase):
             R2 = A(x) * B(y)
             diff = max_absolute_difference(R1, R2)
             self.assertLess(diff, epsilon)
+
+
+class OperatorApplyToSubSystemTest(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_application_to_subsystem(self):
+        num_tests = 10
+        for test_i in range(num_tests):
+            d_left = np.random.randint(2, 4)
+            d_op = np.random.randint(2, 4)
+            d_right = np.random.randint(2, 4)
+            d_total = d_left + d_op + d_right
+            M = random_unitary_operator(d_total)
+
+            I1 = qc.Identity(d_left)
+            I2 = qc.Identity(d_right)
+            Op = random_unitary_operator(d_op)
+
+            R1 = (I1 * Op * I2)(M)
+            R2 = Op(M, qubit_indices=range(d_left, d_left + d_op))
+            self.assertLess(
+                max_absolute_difference(R1, R2),
+                epsilon)
+
+    def test_same_as_applying_to_substate(self):
+        num_tests = 10
+        for test_i in range(num_tests):
+            state_d = np.random.randint(2, 8)
+            op_d = np.random.randint(1, state_d + 1)
+            x = random_state(state_d)
+            I = qc.Identity(state_d)
+            U = random_unitary_operator(op_d)
+            qubit_indices = np.random.choice(state_d, size=op_d, replace=False)
+
+            R1 = U(copy.deepcopy(x), qubit_indices=qubit_indices)
+            R2 = (U(I, qubit_indices=qubit_indices))(copy.deepcopy(x))
+
+            self.assertLess(
+                max_absolute_difference(R1, R2),
+                epsilon)
+
+    def test_same_as_applying_to_substate2(self):
+        num_tests = 10
+        for test_i in range(num_tests):
+            state_d = np.random.randint(2, 8)
+            op_d = np.random.randint(1, state_d + 1)
+            x = random_state(state_d)
+            M = qc.Identity(state_d)
+            U = random_unitary_operator(op_d)
+            qubit_indices = np.random.choice(state_d, size=op_d, replace=False)
+
+            R1 = copy.deepcopy(U)(copy.deepcopy(M)(copy.deepcopy(x)), qubit_indices=qubit_indices)
+            R2 = copy.deepcopy(U)(copy.deepcopy(M), qubit_indices=qubit_indices)(copy.deepcopy(x))
+
+            self.assertLess(
+                max_absolute_difference(R1, R2),
+                epsilon)
+
+    def test_operators_unchanged(self):
+        num_tests = 10
+        for test_i in range(num_tests):
+            d = np.random.randint(3, 8)
+            op_d = np.random.randint(2, d)
+
+            arg_Op = random_unitary_operator(d)
+            Op = random_unitary_operator(op_d)
+            arg_Op_copy = copy.deepcopy(arg_Op)
+            Op_copy = copy.deepcopy(Op)
+
+            qubit_indices = np.random.choice(d, size=op_d, replace=False)
+            R = Op(arg_Op, qubit_indices=qubit_indices)
+
+            self.assertLess(
+                max_absolute_difference(Op, Op_copy),
+                epsilon)
+            self.assertLess(
+                max_absolute_difference(arg_Op, arg_Op_copy),
+                epsilon)
 
 
 class OperatorIdentitiesTest(unittest.TestCase):
@@ -283,6 +442,25 @@ class OperatorIdentitiesTest(unittest.TestCase):
         self.assertLess(
             max_absolute_difference(
                 X(Y(X)), -Y), epsilon)
+
+    def test_CNOT_swap_identity(self):
+        C = qc.CNOT()
+        Sw = qc.Swap()
+
+        Sw1 = C(C(C, qubit_indices=[1, 0]))
+        self.assertLess(
+            max_absolute_difference(
+                Sw, Sw1), epsilon)
+
+    def test_CNOT_hadamard_identity(self):
+        C = qc.CNOT()
+        H = qc.Hadamard()
+
+        C1 = (H * H)(C(H * H, qubit_indices=[1, 0]))
+
+        self.assertLess(
+            max_absolute_difference(
+                C, C1), epsilon)
 
     def test_phase_identities(self):
         Z = qc.PauliZ()

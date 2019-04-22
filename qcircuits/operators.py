@@ -10,6 +10,7 @@ at the top-level module, so that, for example, one can call
 
 
 from itertools import product
+import copy
 
 import numpy as np
 
@@ -30,7 +31,6 @@ class Operator(Tensor):
     def __init__(self, tensor):
         super().__init__(tensor)
         # TODO check unitary (maybe only check when applying?)
-
 
     @staticmethod
     def from_matrix(M):
@@ -70,7 +70,6 @@ class Operator(Tensor):
 
         return Operator(M.reshape([2] * 2 * d).transpose(permutation))
 
-
     def __repr__(self):
         s = 'Operator('
         s += super().__str__().replace('\n', '\n' + ' ' * len(s))
@@ -82,7 +81,6 @@ class Operator(Tensor):
         s += ' Tensor:\n'
         s += super().__str__()
         return s
-
 
     @property
     def adj(self):
@@ -104,7 +102,6 @@ class Operator(Tensor):
         t = np.conj(self._t).transpose(permutation)
         return Operator(t)
 
-
     def to_matrix(self):
         """
         QCircuits represents operators for d-qubit systems with type (d, d) tensors.
@@ -121,6 +118,42 @@ class Operator(Tensor):
         permutation = list(range(0, 2*d, 2)) + list(range(1, 2*d, 2))
         return self._t.transpose(permutation).reshape(2**d, 2**d)
 
+    def permute_qubits(self, axes, inverse=False):
+        """
+        Permute the qubits (i.e., both the incoming and outgoing wires)
+        of the operator.
+
+        Parameters
+        ----------
+        axes : list of int
+            Permute the qubits according to the values given.
+        inverse : bool
+            If true, perform the inverse permutation of the qubits.
+        """
+
+        if inverse:
+            axes = np.argsort(axes)
+
+        op_axes = [[2*n, 2*n+1] for n in axes]
+        op_axes = [v for sublist in op_axes for v in sublist]
+
+        self._t = np.transpose(self._t, op_axes)
+
+    def swap_qubits(self, axis1, axis2):
+        """
+        Swap two qubits (i.e., both the incoming and outgoing wires)
+        of the operator.
+
+        Parameters
+        ----------
+        axis1 : int
+            First axis.
+        axis2 : int
+            Second axis.
+        """
+
+        self._t = np.swapaxes(self._t, 2*axis1, 2*axis2)
+        self._t = np.swapaxes(self._t, 2*axis1 + 1, 2*axis2 + 1)
 
     def __add__(self, arg):
         return Operator(self._t + arg._t)
@@ -144,7 +177,6 @@ class Operator(Tensor):
     def __neg__(self):
         return Operator(-self._t)
 
-    # TODO break up this function
     def __call__(self, arg, qubit_indices=None):
         """
         Applies this Operator to another Operator, as in operator
@@ -152,7 +184,7 @@ class Operator(Tensor):
         if two operators A and B will be applied to state v in sequence,
         either B(A(v)) or (B(A))(v) are valid.
 
-        This operator may be applied to state vectors of higher rank
+        A d-qubit operator may be applied to an n-qubit system with :math:`n>d`
         if the qubits to which it is to be applied are specified in the
         `qubit_indices` parameter.
 
@@ -162,7 +194,7 @@ class Operator(Tensor):
             The state that the operator is applied to, or the operator
             with which the operator is composed.
         qubit_indices: list of int
-            If the operator is applied to a state vector for a larger
+            If the operator is applied to a larger
             quantum system, the user must supply a list of the indices
             of the qubits to which the operator is to be applied.
             These can also be used to apply the operator to the qubits
@@ -175,70 +207,61 @@ class Operator(Tensor):
             operator to the argument.
         """
 
-        d = arg.rank
+        # TODO: this is necessary because of the temporary qubit permutation on the argument
+        # inside this method. If we apply an operator to itself, as in C(C), this
+        # will cause problems.
+        arg = copy.deepcopy(arg)
+
+        if type(arg) is Operator:
+            d = arg.rank // 2
+            arg_indices = list(range(0, 2*d, 2))
+        else:
+            d = arg.rank
+            arg_indices = list(range(d))
+        op_indices = list(range(1, self.rank, 2))
+
+        if len(op_indices) > d:
+            raise ValueError('An operator for a d-rank state space can only be applied to '
+                             'a system whose rank is >= d.')
+        if len(op_indices) < d and qubit_indices is None:
+            raise ValueError('Applying operator to too-large system without supplying '
+                             'qubit indices.')
+
         if qubit_indices is not None:
             qubit_indices = list(qubit_indices)
 
-        if qubit_indices is not None:
             if len(set(qubit_indices)) != len(qubit_indices):
                 raise ValueError('Qubit indices list contains repeated elements.')
-
-        # If we're applying to another operator, the ranks should match
-        if type(arg) is Operator:
-            op_indices = range(1, self.rank, 2)
-            arg_indices = range(0, d, 2)
-
-            if len(op_indices) != len(arg_indices):
-                raise ValueError('An operator can only be composed with an operator of equal rank.')
-            if qubit_indices is not None:
-                raise ValueError('Qubit indices should only be supplied when applying an operator to a ' \
-                                 'state vector, not composing it with another operator.')
-
-        # We can apply an operator to a larger state, as long as we specify which axes of
-        # the state vector are contracted (i.e., which qubits the operator is applied to).
+            if min(qubit_indices) < 0:
+                raise ValueError('Supplied qubit index < 0.')
+            if max(qubit_indices) >= d:
+                raise ValueError('Supplied qubit index larger than system size.')
+            if len(qubit_indices) != len(op_indices):
+                raise ValueError('Length of qubit_indices does not match operator.')
         else:
-            op_indices = range(1, self.rank, 2)
-            arg_indices = range(d)
+            qubit_indices = list(range(d))
 
-            if len(op_indices) > len(arg_indices):
-                raise ValueError('An operator for a d-rank state space can only be applied to ' \
-                                 'state vectors whose rank is >= d.')
-            if len(op_indices) < len(arg_indices) and qubit_indices is None:
-                raise ValueError('Applying operator to too-large state vector without supplying qubit indices.')
-            if qubit_indices is not None:
-                if min(qubit_indices) < 0:
-                    raise ValueError('Supplied qubit index < 0.')
-                if max(qubit_indices) >= len(arg_indices):
-                    raise ValueError('Supplied qubit index larger than state vector rank.')
+        d1 = len(qubit_indices)
+        non_application_indices = sorted(list(set(range(d))  - set(qubit_indices)))
+        application_permutation = qubit_indices + non_application_indices
 
-                if len(qubit_indices) == len(op_indices):
-                    arg_indices = [arg_indices[index] for index in qubit_indices]
-                else:
-                    raise ValueError('Length of qubit_indices does not match number of operator ' \
-                                     'lower indices (i.e., operator rank/2).')
-
+        arg.permute_qubits(application_permutation)
+        arg_indices = arg_indices[:len(qubit_indices)]
         result = np.tensordot(self._t, arg._t, (op_indices, arg_indices))
+        arg.permute_qubits(application_permutation, inverse=True)
 
         # Our convention is to have lower and upper indices of operators interleaved.
         # Using tensordot on operator-operator application leaves us with all upper
         # indices followed by all lower. We transpose the result to fix this.
         if type(arg) is Operator:
-            permute = [0] * d
-            permute[::2] = range(d//2)
-            permute[1::2] = range(d//2, d)
-            result = np.transpose(result, permute)
-        # Likewise, application of operators to sub-vectors using tensordot leaves
-        # our indices out of order, so we transpose them back.
-        # This could be avoided with einsum, but it's easier to work with tensordot.
-        elif qubit_indices is not None:
-            permute = list(range(len(qubit_indices), d))
-            # We also need to permute the indices if the qubit_indices are
-            # supplied out-of-order.
-            for i, v in zip(np.argsort(qubit_indices), np.sort(qubit_indices)):
-                permute.insert(v, i)
+            permute = [0] * 2*d
+            permute[: 2*d1 : 2] = range(d1)
+            permute[1 : 2*d1 : 2] = range(d1, 2*d1)
+            permute[2*d1 : 2*d] = range(2*d1, 2*d)
             result = np.transpose(result, permute)
 
         return_val = arg.__class__(result)
+        return_val.permute_qubits(application_permutation, inverse=True)
         if type(return_val) is not Operator:
             return_val.renormalize_()
 
