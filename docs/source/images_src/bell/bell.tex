@@ -1,0 +1,18 @@
+\documentclass{article}
+
+\usepackage[braket]{qcircuit}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\Qcircuit @C=1em @R=.7em {
+\lstick{\ket{x}} & \gate{H} & \ctrl{1} & \qw \\
+\lstick{\ket{y}} & \qw & \targ & \qw
+}
+
+\vspace{-1.9em}
+\hspace{4em}
+\ket{\beta_{xy}}
+
+\end{document}
