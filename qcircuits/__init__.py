@@ -9,4 +9,4 @@ from qcircuits.operators import ControlledU, U_f
 from qcircuits.operators import Operator
 
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'

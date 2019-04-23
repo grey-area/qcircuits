@@ -1,0 +1,16 @@
+\documentclass{article}
+
+\usepackage[braket]{qcircuit}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\Qcircuit @C=1em @R=1.3em {
+  \lstick{\ket{\psi}} & \ctrl{1} & \gate{H} & \meter & \cw & \cctrl{2} \\
+  \lstick{} & \targ & \qw & \meter & \cctrl{1} &  \\
+  \lstick{} & \qw  & \qw & \qw & \gate{X} & \gate{Z} & \qw & \ket{\psi}
+  \inputgroupv{2}{3}{.6em}{1.3em}{\ket{\beta_{00}}}\\
+}
+
+\end{document}

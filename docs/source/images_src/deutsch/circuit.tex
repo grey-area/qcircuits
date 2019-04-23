@@ -1,0 +1,25 @@
+\documentclass{article}
+
+\usepackage[braket]{qcircuit}
+\usepackage{stackengine}
+\usepackage{amssymb}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\def\stackalignment{r}
+
+\Qcircuit @C=1em @R=4.3em {
+  \lstick{\ket{0}} & \gate{H} & \multigate{1}{\stackanchor[45pt]{$x$}{$y$}
+    \quad \quad \quad U_f \stackanchor[45pt]{$x$}{$y \oplus
+      f(x)$}} & \gate{H} & \qw \\
+  \lstick{\ket{1}} & \gate{H} & \ghost{\stackanchor[45pt]{$x$}{$y$}
+    \quad \quad \quad U_f \stackanchor[45pt]{$x$}{$y \oplus
+      f(x)$}} & \qw & \qw
+}
+\vspace{-4em}
+\hspace{15em}
+$ \pm \frac{1}{\sqrt{2}} (\ket{f(0) \oplus f(1)} \left( \ket{0} - \ket{1} \right) $
+
+\end{document}

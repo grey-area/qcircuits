@@ -15,7 +15,7 @@ class Tensor:
     """
 
     def __init__(self, tensor):
-        self._t = tensor
+        self._t = np.array(tensor, dtype=np.complex128)
 
     def __str__(self):
         return str(self._t)

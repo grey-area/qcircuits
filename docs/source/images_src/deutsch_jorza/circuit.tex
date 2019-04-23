@@ -1,0 +1,26 @@
+\documentclass{article}
+
+\usepackage[braket]{qcircuit}
+\usepackage{stackengine}
+\usepackage{amssymb}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\def\stackalignment{r}
+
+\Qcircuit @C=1em @R=4.3em {
+  \lstick{\ket{0} ^{\otimes n}} & \gate{H ^{\otimes n}} & \multigate{1}{\stackanchor[45pt]{$x$}{$y$}
+    \quad \quad \quad U_f \stackanchor[45pt]{$x$}{$y \oplus
+      f(x)$}} & \gate{H ^{\otimes n}} & \meter & \cw \\
+  \lstick{\ket{1}} & \gate{H} & \ghost{\stackanchor[45pt]{$x$}{$y$}
+    \quad \quad \quad U_f \stackanchor[45pt]{$x$}{$y \oplus
+      f(x)$}} & \qw
+}
+\vspace{-7em}
+\hspace{20em}
+\def\stackalignment{c}
+\stackanchor{all zeros if and only}{if $f$ is constant}
+
+\end{document}
