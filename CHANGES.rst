@@ -1,3 +1,16 @@
+v0.4.0, 2019/04/22
+
+- Supports Python 3.4.3
+- Added phase gate, pi/8 gate.
+- Added rotation gates.
+- Can now add, subtract, negate, scalar-multiply states (and operators).
+- State re-normalization is now done after operator application and measurement.
+- New __str__ and __repr__ methods of operators and states.
+- Can now get Kronecker product column vector/matrix representations of states and operators, and construct them from those representations.
+- Can now compute the Schmidt number of a composite state.
+- Can now permute the incoming and outgoing qubits of an operator in the same way as can be done to states.
+- Can now apply d-qubit operators to n-qubit operators where n>d by supplying the indices of the higher-rank operator that the lower-rank operator will apply to. Unified implementation with implementation of applying operator to larger state, simplifying the __call__ method of Operator.
+
 v0.3.0, 2019/03/12
 ==================
 

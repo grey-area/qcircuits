@@ -5,7 +5,7 @@ if __name__ == '__main__':
 
     setup(
         name='QCircuits',
-        version='0.3.0',
+        version='0.4.0',
         author='Andrew M. Webb',
         author_email='andrew@awebb.info',
         packages=['qcircuits'],
@@ -13,7 +13,7 @@ if __name__ == '__main__':
         license='MIT License',
         description='A package for simulating small-scale quantum computing',
         long_description=open('README.rst').read(),
-        python_requires='>3.4.3',
+        python_requires='>=3.4.3',
         install_requires=[
             "numpy >= 1.11.3",
         ],

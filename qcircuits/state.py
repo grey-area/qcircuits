@@ -27,14 +27,45 @@ class State(Tensor):
     def __init__(self, tensor):
         super().__init__(tensor)
 
-        if abs(np.sum(self.probabilities) - 1.0) > 1e-4:
-            raise RuntimeError('Vector is not a unit vector.')
+    @staticmethod
+    def from_column_vector(v):
+        """
+        QCircuits represents d-qubit states by type (d, 0) tensors.
+        This function constructs a state from the more common column
+        vector Kronecker-product representation of the state.
+
+        Parameters
+        ----------
+        numpy complex128 multidimensional array
+            The column vector representation of the state,
+            of size 2**d.
+
+        Returns
+        -------
+        State
+            A d-qubit state.
+
+        """
+
+        if type(v) is list:
+            v = np.array(v, dtype=np.complex128)
+
+        # Check the size is a power of 2
+        d = np.log2(v.size)
+        if not d.is_integer():
+            raise ValueError('Vector size should be a power of 2.')
+        d = int(d)
+        return State(v.reshape([2]*d))
 
     def __repr__(self):
-        return 'State vector for {}-rank state space.'.format(self.rank)
+        s = 'State('
+        s += super().__str__().replace('\n', '\n' + ' ' * len(s))
+        s += ')'
+        return s
 
     def __str__(self):
-        s = self.__repr__() + ' Tensor:\n'
+        s = '{}-qubit state.'.format(self.rank // 2)
+        s += ' Tensor:\n'
         s += super().__str__()
         return s
 
@@ -54,6 +85,28 @@ class State(Tensor):
         """
 
         return np.sum(np.conj(self._t) * arg._t)
+
+    def renormalize_(self):
+        """
+        Renormalize the state so that the sum of squared amplitude
+        magnitudes is 1.
+        """
+
+        self._t /= np.sqrt(np.real(self.dot(self)))
+
+    def to_column_vector(self):
+        """
+        QCircuits represents d-qubit states by type (d, 0) tensors.
+        This function returns the more common column vector Kronecker-product
+        representation of the state.
+
+        Returns
+        -------
+        numpy complex128 multidimensional array
+            The column vector representation of the state.
+        """
+
+        return self._t.flatten()
 
     def permute_qubits(self, axes, inverse=False):
         """
@@ -88,6 +141,28 @@ class State(Tensor):
 
         self._t = np.swapaxes(self._t, axis1, axis2)
 
+    def __add__(self, arg):
+        return State(self._t + arg._t)
+
+    def __sub__(self, arg):
+        return self + (-1) * arg
+
+    def __neg__(self):
+        return State(-self._t)
+
+    def __mul__(self, scalar):
+        if isinstance(scalar, (float, int, complex)):
+            return State(scalar * self._t)
+        else:
+            return super().__mul__(scalar)
+
+    def __rmul__(self, scalar):
+        if isinstance(scalar, (float, int, complex)):
+            return State(scalar * self._t)
+
+    def __truediv__(self, scalar):
+        return State(self._t / scalar)
+
     @property
     def probabilities(self):
         """
@@ -117,9 +192,51 @@ class State(Tensor):
             The probability amplitudes of the state.
         """
 
+        if abs(np.sum(self.probabilities) - 1.0) > 1e-4:
+            raise RuntimeError('Vector is not a unit vector.')
+
         amp = np.copy(self._t)
         amp.flags.writeable = False
         return amp
+
+
+    # Todo: also return schmidt bases
+    def schmidt_number(self, indices):
+        """
+        For a d-qubit state (d>1) in vector space `A\otimes B`,
+        get the Schmidt number, a measure of entanglement,
+        for the Schmidt decomposition of that
+        state for the subsystems A and B.
+
+        Parameters
+        ----------
+        indices : list of int
+            The qubit indices for one of the subsystems.
+            This should include at least one qubit index
+            and also exclude at least one index.
+
+        Returns
+        -------
+        int
+            The Schmidt number.
+        """
+
+        if len(indices) in [0, self.rank]:
+            raise ValueError('At least one qubit index should be included '
+                             'and at least one should be excluded')
+        if min(indices) < 0 or max(indices) >= self.rank:
+            raise ValueError('Indices should be between 0 and d-1 for a d-qubit state.')
+        if not all([isinstance(idx, int) for idx in indices]):
+            raise ValueError('Indices should be integers.')
+
+        included_indices = set(indices)
+        excluded_indices = set(range(self.rank)) - included_indices
+        permutation = list(included_indices) + list(excluded_indices)
+        M = self._t.transpose(permutation).reshape(
+            (2**len(included_indices), 2**len(excluded_indices))
+        )
+        U, D, V = np.linalg.svd(M)
+        return np.sum(D > 1e-10)
 
 
     def measure(self, qubit_indices=None, remove=False):
@@ -148,6 +265,9 @@ class State(Tensor):
             If the `qubit_indices` parameter is supplied as an int,
             an int is returned, otherwise a tuple.
         """
+
+        if abs(np.sum(self.probabilities) - 1.0) > 1e-4:
+            raise RuntimeError('Vector is not a unit vector.')
 
         # If an int argument for qubit_indices is supplied, the return
         # value should be an int giving the single measurement outcome.
@@ -198,6 +318,8 @@ class State(Tensor):
         # single measurement as an int rather than a tuple
         if int_arg:
             bits = bits[0]
+
+        self.renormalize_()
 
         return bits
 

@@ -10,6 +10,7 @@ at the top-level module, so that, for example, one can call
 
 
 from itertools import product
+import copy
 
 import numpy as np
 
@@ -29,16 +30,57 @@ class Operator(Tensor):
 
     def __init__(self, tensor):
         super().__init__(tensor)
-        # TODO check unitary
+        # TODO check unitary (maybe only check when applying?)
+
+    @staticmethod
+    def from_matrix(M):
+        """
+        QCircuits represents operators for d-qubit systems with type (d, d) tensors.
+        This function constructs an operator from the more common matrix
+        Kronecker-product representation of the operator.
+
+        Parameters
+        ----------
+        numpy complex128 multidimensional array
+            The matrix representation of the operator.
+
+        Returns
+        -------
+        Operator
+            A d-qubit operator.
+
+        """
+
+        if type(M) is list:
+            M = np.array(M, dtype=np.complex128)
+
+        # Check the matrix is square
+        shape = M.shape
+        if len(shape) != 2 or shape[0] != shape[1]:
+            raise ValueError('The matrix should be square.')
+        # Check the dimension is a power of 2
+        d = np.log2(shape[0])
+        if not d.is_integer():
+            raise ValueError('The matrix dimension should be a power of 2.')
+        d = int(d)
+
+        permutation = [0] * 2 * d
+        permutation[::2] = range(0, d)
+        permutation[1::2] = range(d, 2*d)
+
+        return Operator(M.reshape([2] * 2 * d).transpose(permutation))
 
     def __repr__(self):
-        return 'Operator for {}-rank state space.'.format(self.rank // 2)
-
-    def __str__(self):
-        s = self.__repr__() + ' Tensor:\n'
-        s += super().__str__()
+        s = 'Operator('
+        s += super().__str__().replace('\n', '\n' + ' ' * len(s))
+        s += ')'
         return s
 
+    def __str__(self):
+        s = 'Operator for {}-qubit state space.'.format(self.rank // 2)
+        s += ' Tensor:\n'
+        s += super().__str__()
+        return s
 
     @property
     def adj(self):
@@ -60,8 +102,81 @@ class Operator(Tensor):
         t = np.conj(self._t).transpose(permutation)
         return Operator(t)
 
-    # Compose this operator with another operator, or apply it to a state vector
-    # TODO break up this function
+    def to_matrix(self):
+        """
+        QCircuits represents operators for d-qubit systems with type (d, d) tensors.
+        This function returns the more common matrix Kronecker-product
+        representation of the operator.
+
+        Returns
+        -------
+        numpy complex128 multidimensional array
+            The matrix representation of the operator.
+        """
+
+        d = len(self.shape) // 2
+        permutation = list(range(0, 2*d, 2)) + list(range(1, 2*d, 2))
+        return self._t.transpose(permutation).reshape(2**d, 2**d)
+
+    def permute_qubits(self, axes, inverse=False):
+        """
+        Permute the qubits (i.e., both the incoming and outgoing wires)
+        of the operator.
+
+        Parameters
+        ----------
+        axes : list of int
+            Permute the qubits according to the values given.
+        inverse : bool
+            If true, perform the inverse permutation of the qubits.
+        """
+
+        if inverse:
+            axes = np.argsort(axes)
+
+        op_axes = [[2*n, 2*n+1] for n in axes]
+        op_axes = [v for sublist in op_axes for v in sublist]
+
+        self._t = np.transpose(self._t, op_axes)
+
+    def swap_qubits(self, axis1, axis2):
+        """
+        Swap two qubits (i.e., both the incoming and outgoing wires)
+        of the operator.
+
+        Parameters
+        ----------
+        axis1 : int
+            First axis.
+        axis2 : int
+            Second axis.
+        """
+
+        self._t = np.swapaxes(self._t, 2*axis1, 2*axis2)
+        self._t = np.swapaxes(self._t, 2*axis1 + 1, 2*axis2 + 1)
+
+    def __add__(self, arg):
+        return Operator(self._t + arg._t)
+
+    def __sub__(self, arg):
+        return self + (-1) * arg
+
+    def __mul__(self, scalar):
+        if isinstance(scalar, (float, int, complex)):
+            return Operator(scalar * self._t)
+        else:
+            return super().__mul__(scalar)
+
+    def __rmul__(self, scalar):
+        if isinstance(scalar, (float, int, complex)):
+            return Operator(scalar * self._t)
+
+    def __truediv__(self, scalar):
+        return Operator(self._t / scalar)
+
+    def __neg__(self):
+        return Operator(-self._t)
+
     def __call__(self, arg, qubit_indices=None):
         """
         Applies this Operator to another Operator, as in operator
@@ -69,7 +184,7 @@ class Operator(Tensor):
         if two operators A and B will be applied to state v in sequence,
         either B(A(v)) or (B(A))(v) are valid.
 
-        This operator may be applied to state vectors of higher rank
+        A d-qubit operator may be applied to an n-qubit system with :math:`n>d`
         if the qubits to which it is to be applied are specified in the
         `qubit_indices` parameter.
 
@@ -79,7 +194,7 @@ class Operator(Tensor):
             The state that the operator is applied to, or the operator
             with which the operator is composed.
         qubit_indices: list of int
-            If the operator is applied to a state vector for a larger
+            If the operator is applied to a larger
             quantum system, the user must supply a list of the indices
             of the qubits to which the operator is to be applied.
             These can also be used to apply the operator to the qubits
@@ -92,70 +207,65 @@ class Operator(Tensor):
             operator to the argument.
         """
 
-        d = arg.rank
+        # TODO: this is necessary because of the temporary qubit permutation on the argument
+        # inside this method. If we apply an operator to itself, as in C(C), this
+        # will cause problems.
+        arg = copy.deepcopy(arg)
+
+        if type(arg) is Operator:
+            d = arg.rank // 2
+            arg_indices = list(range(0, 2*d, 2))
+        else:
+            d = arg.rank
+            arg_indices = list(range(d))
+        op_indices = list(range(1, self.rank, 2))
+
+        if len(op_indices) > d:
+            raise ValueError('An operator for a d-rank state space can only be applied to '
+                             'a system whose rank is >= d.')
+        if len(op_indices) < d and qubit_indices is None:
+            raise ValueError('Applying operator to too-large system without supplying '
+                             'qubit indices.')
+
         if qubit_indices is not None:
             qubit_indices = list(qubit_indices)
 
-        if qubit_indices is not None:
             if len(set(qubit_indices)) != len(qubit_indices):
                 raise ValueError('Qubit indices list contains repeated elements.')
-
-        # If we're applying to another operator, the ranks should match
-        if type(arg) is Operator:
-            op_indices = range(1, self.rank, 2)
-            arg_indices = range(0, d, 2)
-
-            if len(op_indices) != len(arg_indices):
-                raise ValueError('An operator can only be composed with an operator of equal rank.')
-            if qubit_indices is not None:
-                raise ValueError('Qubit indices should only be supplied when applying an operator to a ' \
-                                 'state vector, not composing it with another operator.')
-
-        # We can apply an operator to a larger state, as long as we specify which axes of
-        # the state vector are contracted (i.e., which qubits the operator is applied to).
+            if min(qubit_indices) < 0:
+                raise ValueError('Supplied qubit index < 0.')
+            if max(qubit_indices) >= d:
+                raise ValueError('Supplied qubit index larger than system size.')
+            if len(qubit_indices) != len(op_indices):
+                raise ValueError('Length of qubit_indices does not match operator.')
         else:
-            op_indices = range(1, self.rank, 2)
-            arg_indices = range(d)
+            qubit_indices = list(range(d))
 
-            if len(op_indices) > len(arg_indices):
-                raise ValueError('An operator for a d-rank state space can only be applied to ' \
-                                 'state vectors whose rank is >= d.')
-            if len(op_indices) < len(arg_indices) and qubit_indices is None:
-                raise ValueError('Applying operator to too-large state vector without supplying qubit indices.')
-            if qubit_indices is not None:
-                if min(qubit_indices) < 0:
-                    raise ValueError('Supplied qubit index < 0.')
-                if max(qubit_indices) >= len(arg_indices):
-                    raise ValueError('Supplied qubit index larger than state vector rank.')
+        d1 = len(qubit_indices)
+        non_application_indices = sorted(list(set(range(d))  - set(qubit_indices)))
+        application_permutation = qubit_indices + non_application_indices
 
-                if len(qubit_indices) == len(op_indices):
-                    arg_indices = [arg_indices[index] for index in qubit_indices]
-                else:
-                    raise ValueError('Length of qubit_indices does not match number of operator ' \
-                                     'lower indices (i.e., operator rank/2).')
-
+        arg.permute_qubits(application_permutation)
+        arg_indices = arg_indices[:len(qubit_indices)]
         result = np.tensordot(self._t, arg._t, (op_indices, arg_indices))
+        arg.permute_qubits(application_permutation, inverse=True)
 
         # Our convention is to have lower and upper indices of operators interleaved.
         # Using tensordot on operator-operator application leaves us with all upper
         # indices followed by all lower. We transpose the result to fix this.
         if type(arg) is Operator:
-            permute = [0] * d
-            permute[::2] = range(d//2)
-            permute[1::2] = range(d//2, d)
-            result = np.transpose(result, permute)
-        # Likewise, application of operators to sub-vectors using tensordot leaves
-        # our indices out of order, so we transpose them back.
-        # This could be avoided with einsum, but it's easier to work with tensordot.
-        elif qubit_indices is not None:
-            permute = list(range(len(qubit_indices), d))
-            # We also need to permute the indices if the qubit_indices are
-            # supplied out-of-order.
-            for i, v in zip(np.argsort(qubit_indices), np.sort(qubit_indices)):
-                permute.insert(v, i)
+            permute = [0] * 2*d
+            permute[: 2*d1 : 2] = range(d1)
+            permute[1 : 2*d1 : 2] = range(d1, 2*d1)
+            permute[2*d1 : 2*d] = range(2*d1, 2*d)
             result = np.transpose(result, permute)
 
-        return arg.__class__(result)
+        return_val = arg.__class__(result)
+        return_val.permute_qubits(application_permutation, inverse=True)
+        if type(return_val) is not Operator:
+            return_val.renormalize_()
+
+        return return_val
 
 
 # Factory functions for building operators
@@ -177,7 +287,8 @@ def Identity(d=1):
 
     See Also
     --------
-    PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
+    PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -204,7 +315,8 @@ def PauliX(d=1):
 
     See Also
     --------
-    Identity, PauliY, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
+    Identity, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -230,7 +342,8 @@ def PauliY(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliZ, Hadamard, Phase, SqrtNot, CNOT, Toffoli
+    Identity, PauliX, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -257,7 +370,8 @@ def PauliZ(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, Hadamard, Phase, SqrtNot, CNOT, Toffoli
+    Identity, PauliX, PauliY, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
@@ -283,7 +397,8 @@ def Hadamard(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Phase, SqrtNot, CNOT, Toffoli
+    Identity, PauliX, PauliY, PauliZ, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
     return Operator(1/np.sqrt(2) *
@@ -291,10 +406,11 @@ def Hadamard(d=1):
                   [1.0 + 0.0j, -1.0 + 0.0j]])).tensor_power(d)
 
 
-def Phase(phi=np.pi/2, d=1):
+def Phase(d=1):
     """
-    Produce the `d`-qubit Phase change operator.
-    Maps: \|0⟩ -> \|0⟩, \|1⟩ -> :math:`e^{i\phi}` \|1⟩.
+    Produce the `d`-qubit Phase operator S.
+    Maps: \|0⟩ -> \|0⟩, \|1⟩ -> i\|1⟩.
+    Note that :math:`S^2 = Z`.
 
     Parameters
     ----------
@@ -309,12 +425,150 @@ def Phase(phi=np.pi/2, d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, SqrtNot, CNOT, Toffoli
+    Identity, PauliX, PauliY, PauliZ, Hadamard, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
     return Operator(np.array([[1.0 + 0.0j, 0.0j],
-                              [0.0j, np.exp(phi * 1j)]])).tensor_power(d)
+                              [0.0j, 1.0j]])).tensor_power(d)
+def PiBy8(d=1):
+    """
+    Produce the `d`-qubit :math:`\pi/8` operator T.
+    Maps: \|0⟩ -> \|0⟩, \|1⟩ -> :math:`e^{i\pi/4}` \|1⟩.
+    Note that :math:`T^2 = S`, where S is the phase gate,
+    and :math:`T^4 = Z`.
+
+    Parameters
+    ----------
+    d : int
+        The number of qubits described by the state vector on which
+        the produced operator will act.
+
+    Returns
+    -------
+    Operator
+        A rank `2d` tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    return Operator(np.array([[1.0 + 0.0j, 0.0j],
+                              [0.0j, np.exp(1j * np.pi/4)]])).tensor_power(d)
+
+def Rotation(v, theta):
+    """
+    Produce the single-qubit rotation operator.
+    In terms of the Bloch sphere picture of the qubit state, the
+    operator rotates a state through angle :math:`\theta` around vector v.
+
+    Parameters
+    ----------
+    v : list of float
+        A real 3D unit vector around which the qubit's Bloch vector is to be rotated.
+    theta : float
+        The angle through which the qubit's Bloch vector is to be rotated.
+
+    Returns
+    -------
+    Operator
+        A rank 2 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase
+    PiBy8, RotationX, RotationY, RotationZ, SqrtNot, CNOT, Toffoli
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    v = np.array(v)
+    if v.shape != (3,) or abs(v.dot(v) - 1.0) > 1e-8 or not np.all(np.isreal(v)):
+        raise ValueError('Rotation vector v should be a 3D real unit vector.')
+
+    return np.cos(theta/2) * Identity() - 1j * np.sin(theta/2) * (
+        v[0] * PauliX() + v[1] * PauliY() + v[2] * PauliZ())
+
+
+def RotationX(theta):
+    """
+    Produce the single-qubit X-rotation operator.
+    In terms of the Bloch sphere picture of the qubit state, the
+    operator rotates a state through angle theta around the x-axis.
+
+    Parameters
+    ----------
+    theta : float
+        The angle through which the qubit's Bloch vector is to be rotated.
+
+    Returns
+    -------
+    Operator
+        A rank 2 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationY, RotationZ, SqrtNot, CNOT, Toffoli
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    return Rotation([1., 0., 0.], theta)
+
+
+def RotationY(theta):
+    """
+    Produce the single-qubit Y-rotation operator.
+    In terms of the Bloch sphere picture of the qubit state, the
+    operator rotates a state through angle theta around the y-axis.
+
+    Parameters
+    ----------
+    theta : float
+        The angle through which the qubit's Bloch vector is to be rotated.
+
+    Returns
+    -------
+    Operator
+        A rank 2 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationZ, SqrtNot, CNOT, Toffoli
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    return Rotation([0., 1., 0.], theta)
+
+
+def RotationZ(theta):
+    """
+    Produce the single-qubit Z-rotation operator.
+    In terms of the Bloch sphere picture of the qubit state, the
+    operator rotates a state through angle theta around the z-axis.
+
+    Parameters
+    ----------
+    theta : float
+        The angle through which the qubit's Bloch vector is to be rotated.
+
+    Returns
+    -------
+    Operator
+        A rank 2 tensor describing the operator.
+
+    See Also
+    --------
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, SqrtNot, CNOT, Toffoli
+    Swap, SqrtSwap, ControlledU, U_f
+    """
+
+    return Rotation([0., 0., 1.], theta)
 
 
 def SqrtNot(d=1):
@@ -336,7 +590,8 @@ def SqrtNot(d=1):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT, Toffoli
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, CNOT, Toffoli
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -357,7 +612,8 @@ def CNOT():
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, Toffoli, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, Toffoli, SqrtNot
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -385,7 +641,8 @@ def Toffoli():
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, CNOT, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, CNOT, SqrtNot
     Swap, SqrtSwap, ControlledU, U_f
     """
 
@@ -414,7 +671,8 @@ def Swap():
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot
     CNOT, Toffoli, SqrtSwap, ControlledU, U_f
     """
 
@@ -441,7 +699,8 @@ def SqrtSwap():
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot
     CNOT, Toffoli, Swap, ControlledU, U_f
     """
 
@@ -475,7 +734,8 @@ def ControlledU(U):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot
     CNOT, Toffoli, Swap, SqrtSwap, U_f
     """
 
@@ -510,7 +770,8 @@ def U_f(f, d):
 
     See Also
     --------
-    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, SqrtNot
+    Identity, PauliX, PauliY, PauliZ, Hadamard, Phase, PiBy8, Rotation
+    RotationX, RotationY, RotationZ, SqrtNot
     CNOT, Toffoli, Swap, SqrtSwap, ControlledU
     """
     if d < 2:
