@@ -65,6 +65,25 @@ using the same function, e.g.,
 
     >>> phi = qc.qubit(theta=math.pi, phi=0, global_phase=math.pi/2)
 
+The four Bell states can be prepared using the :py:func:`.bell_state` function.
+This takes two binary arguments x and y, and produces the Bell state
+:math:`|\beta_{xy}⟩ = \big( |0, y⟩ + (-1)^x |1, 1-y⟩ \big)/\sqrt{2}`. E.g.,
+the Bell state :math:`|\beta_{00}⟩ = \frac{|00⟩ + |11⟩}{\sqrt{2}}`
+can be prepared:
+
+.. code-block:: python
+
+    >>> beta = qc.bell_state(0, 0)
+
+The :py:func:`.positive_superposition` function may be used to prepare
+a d-qubit state in the positive equal superposition of the computational
+states. E.g., to construct the 2-qubit state 
+:math:`|\phi⟩ = \big(|00⟩ + |01⟩ + |10⟩ + |11⟩ \big) / 2`:
+
+.. code-block:: python
+
+    >>> phi = qc.positive_superposition(d=2)
+
 .. TODO: state arithmetic
 
 .. TODO: qubit permutation
@@ -142,6 +161,8 @@ Operators
 ---------
 
 .. TODO
+
+.. TODO operator arithmetic
 
 For a list of available operators, see :py:class:`.Operator`.
 
