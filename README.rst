@@ -84,5 +84,3 @@ Code::
 
 .. inclusion-marker3-do-not-remove
 
-Details
-=======
