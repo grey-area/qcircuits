@@ -29,7 +29,7 @@ or from the source available here.
 
 .. inclusion-marker16-do-not-remove
 
-Example usage
+Example usage: quantum teleportation
 =============
 
 .. inclusion-marker2-do-not-remove
