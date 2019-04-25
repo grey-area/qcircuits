@@ -3,15 +3,19 @@
 Tutorial
 ========
 
-QCircuits is a library for simulating small-scale quantum circuits.
+QCircuits is a library for simulating quantum circuits.
 Its primary classes are :py:class:`.State`, representing the (quantum) state
 of the computer, a unit vector in a
 complex vector space, and :py:class:`.Operator`, representing quantum gates,
-i.e. unitary operators,
+i.e. unitary operators
 on those vector spaces.
+This tutorial describes how to use QCircuits to prepare operators and states,
+apply operators to states, measure states, etc., in order to implement
+quantum algorithms.
 
-Specifically, QCircuits' states are for :math:`d`-qubit systems, and so they
-are unit vectors in :math:`2^d`-dimensional complex vector spaces.
+First, install QCircuits with pip:
+
+``pip install qcircuits``
 
 In the following, it is assumed that QCircuits has been imported with:
 
@@ -541,7 +545,61 @@ by specifying the qubits on which the operator acts:
 Measurement
 ===========
 
-.. TODO
+Measurement in the computational basis may be performed on one or
+more qubits of a state with the :py:meth:`.State.measure` method,
+which returns the result of measurement.
+Post-measurement, the state collapses to the computational basis
+state corresponding to the result of the measurement of the measured
+qubits. The :py:meth:`.State.measure` method has two arguments, 
+a list of indices specifying the qubits to be measured,
+and a flag specifying whether the measured qubits are to be removed from the state.
+If no indices are supplied, every qubit is measured.
+
+E.g., the single-qubit state :math:`|0⟩` will yield the measurement 0
+with certainty:
+
+.. code-block:: python
+
+    >>> qc.zeros(1).measure()
+    (0,)
+
+The 3-qubit state :math:`|111⟩` will yield measurement 1, 1 with certainty when the
+first two qubits are measured. Post-measurement we are left with either a 3- or 1-qubit
+state, depending on if we choose to remove the measured qubits from the state.
+
+.. code-block:: python
+
+    >> phi = qc.ones(3)
+    >> phi.measure(qubit_indices=[0, 1], remove=False)
+    (1,1)
+    >> phi.shape
+    (2,2,2)
+
+    >> phi = qc.ones(3)
+    >> phi.measure(qubit_indices=[0, 1], remove=True)
+    (1,1)
+    >> phi.shape  # if the measured qubits are removed, we are left with state |1⟩
+    (2,)
+
+Measuring the state :math:`(|0⟩ + |1⟩)/\sqrt{2}` yields 0 or 1 with equal probability.
+Note that in the following code we must prepare a fresh state each time we measure
+to see different measurement outcomes, because the measured state is left either
+in the state :math:`|0⟩` or in the state :math:`|1⟩`.
+
+.. code-block:: python
+
+    >> H = qc.Hadamard()
+    >> H(qc.zeros(1)).measure()
+    (0,)
+
+    >> H(qc.zeros(1)).measure()
+    (1,)
+
+    >> H(qc.zeros(1)).measure()
+    (0,)
+
+
+
 
 .. TODO warning about non-unit, non-unitary
 
@@ -550,6 +608,8 @@ Measurement
 Warning: No-Cloning Theorem
 ===========================
 
+
+.. TODO
 
 
 Entanglement / Schmidt Number
