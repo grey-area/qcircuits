@@ -64,7 +64,7 @@ class State(Tensor):
         return s
 
     def __str__(self):
-        s = '{}-qubit state.'.format(self.rank // 2)
+        s = '{}-qubit state.'.format(self.rank)
         s += ' Tensor:\n'
         s += super().__str__()
         return s
