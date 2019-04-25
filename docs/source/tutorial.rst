@@ -20,7 +20,7 @@ In the following, it is assumed that QCircuits has been imported with:
     >>> import qcircuits as qc
 
 States
-------
+======
 
 States in QCircuits represent the state of a :math:`d`-qubit quantum computer.
 This section introduces some of the ways in which states can be prepared
@@ -94,7 +94,7 @@ tensor product of states, each of which is described in later sections.
 
 
 How are States Represented?
----------------------------
+===========================
 
 Internally, QCircuits encodes a d-qubit state with an array of shape
 (2, 2, ..., 2), with d axes in total, representing a tensor with
@@ -159,7 +159,7 @@ the :py:meth:`.State.from_column_vector` static method:
 
 
 Operators
----------
+=========
 
 Operators in QCircuits represent quantum 'gates' for :math:`d`-qubit
 quantum computers, i.e., unitary linear operators on a :math:`2^d` dimensional
@@ -315,7 +315,7 @@ For a full list of available operators, see :py:class:`.Operator`.
 
 
 How are Operators Represented?
-------------------------------
+==============================
 
 Internally, QCircuits encodes an operator for a d-qubit system with an array of shape
 (2, 2, ..., 2), with 2d axes in total, representing a tensor with
@@ -410,7 +410,7 @@ Operators can be constructed from this matrix representation using the
 
 
 Applying Operators to States
-----------------------------
+============================
 
 .. TODO
 
@@ -421,7 +421,7 @@ Applying Operators to States
 
 
 Tensor Products
----------------
+===============
 
 If a quantum system :math:`A` is in state :math:`|\psi⟩`, and system
 :math:`B` is in state :math:`|\phi⟩`, then the combined system
@@ -489,7 +489,7 @@ states.
 
 
 Composing Operators
--------------------
+===================
 
 Operators may be applied to other operators to produce new operators,
 as linear operators are associative, i.e., :math:`A(B|\phi⟩) = (AB)|\phi⟩`.
@@ -539,7 +539,7 @@ by specifying the qubits on which the operator acts:
 .. TODO think of supplying qubit indices as wire permutation
 
 Measurement
------------
+===========
 
 .. TODO
 
@@ -548,12 +548,12 @@ Measurement
 
 
 Warning: No-Cloning Theorem
----------------------------
+===========================
 
 
 
 Entanglement / Schmidt Number
------------------------------
+=============================
 
 A state :math:`|\phi⟩` of a composite quantum system
 :math:`A\otimes B` has a Schmidt decomposition:
@@ -599,7 +599,7 @@ two subsystems with have a Schmidt number 1 with respect to those two subsystems
 
 
 Examples
---------
+========
 
 For examples of the use of QCircuits to implement quantum algorithms,
 see the :ref:`examples page<examples_page>`.

@@ -3,8 +3,11 @@
 Examples
 ========
 
-Producing Bell states
----------------------
+This page demonstrates how QCircuits can be used to simulate example
+quantum algorithms.
+
+Producing Bell States
+=====================
 
 Example code producing each of the four entangled Bell states for a two-qubit system.
 
@@ -22,8 +25,8 @@ E.g., :math:`|\beta_{00}⟩ = \frac{1}{\sqrt{2}} (|00⟩ + |11⟩)`.
 
 .. literalinclude:: ../../examples/produce_bell_states.py
 
-Quantum teleportation
----------------------
+Quantum Teleportation
+=====================
 
 .. image:: images/teleport.png
     :width: 100%
@@ -32,8 +35,8 @@ Quantum teleportation
 
 .. literalinclude:: ../../examples/quantum_teleportation.py
 
-Quantum parallelism
--------------------
+Quantum Parallelism
+===================
 
 .. image:: images/parallel.png
     :width: 100%
@@ -42,8 +45,8 @@ Quantum parallelism
 
 .. literalinclude:: ../../examples/quantum_parallelism.py
 
-Deutsch's algorithm
--------------------
+Deutsch's Algorithm
+===================
 
 .. image:: images/deutsch.png
     :width: 100%
@@ -52,8 +55,8 @@ Deutsch's algorithm
 
 .. literalinclude:: ../../examples/deutsch_algorithm.py
 
-The Deutsch-Jorza algorithm
----------------------------
+The Deutsch-Jorza Algorithm
+===========================
 
 .. image:: images/deutsch_jorza.png
     :width: 100%
@@ -62,8 +65,8 @@ The Deutsch-Jorza algorithm
 
 .. literalinclude:: ../../examples/deutsch_jorza_algorithm.py
 
-Superdense coding
------------------
+Superdense Coding
+=================
 
 .. image:: images/superdense.png
     :width: 100%
