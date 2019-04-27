@@ -91,7 +91,7 @@ def phase_estimation(d=2, t=8):
 
     return phi, phi_estimate
 
-    
+
 if __name__ == '__main__':
     phi, phi_estimate = phase_estimation(d=2, t=8)
 
