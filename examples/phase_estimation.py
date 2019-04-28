@@ -20,9 +20,9 @@ def stage_1(state, U, t, d):
     # conditional on the state of the t-i qubit in the
     # t-qubit register.
     for idx, t_i in enumerate(range(t-1, -1, -1)):
-        U_2_idx = qc.Identity(d)
-        for app_i in range(2**idx):
-            U_2_idx = U(U_2_idx)
+        U_2_idx = U
+        for app_i in range(idx):
+            U_2_idx = U_2_idx(U_2_idx)
         C_U = qc.ControlledU(U_2_idx)
         state = C_U(
             state,
@@ -96,4 +96,4 @@ if __name__ == '__main__':
     phi, phi_estimate = phase_estimation(d=2, t=8)
 
     print('True phase: {}'.format(phi))
-    print('Estimated phase: {}'.format(phi))
+    print('Estimated phase: {}'.format(phi_estimate))
