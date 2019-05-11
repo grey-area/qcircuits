@@ -995,6 +995,7 @@ from superdense_coding import superdense_coding
 import produce_bell_states
 import quantum_parallelism
 from phase_estimation import phase_estimation
+import grover_algorithm
 
 def deutsch_function(L):
     return lambda x: L[x]
@@ -1023,6 +1024,15 @@ class TestExamples(unittest.TestCase):
                     self.assertTrue(not(any(measurements)))
                 else:
                     self.assertTrue(any(measurements))
+
+    def test_grover_algorithm_example(self):
+        num_tests = 3
+
+        for test_i in range(num_tests):
+            d = np.random.randint(8, 11)
+            f = grover_algorithm.construct_problem(d)
+            measurements = grover_algorithm.grover_algorithm(d, f)
+            self.assertTrue(f(*measurements))
 
     def test_quantum_teleportation_example(self):
         num_tests = 10
