@@ -5,7 +5,7 @@ if __name__ == '__main__':
 
     setup(
         name='QCircuits',
-        version='0.4.1',
+        version='0.4.2',
         author='Andrew M. Webb',
         author_email='andrew@awebb.info',
         packages=['qcircuits'],
