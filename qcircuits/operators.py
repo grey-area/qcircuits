@@ -118,6 +118,16 @@ class Operator(Tensor):
         permutation = list(range(0, 2*d, 2)) + list(range(1, 2*d, 2))
         return self._t.transpose(permutation).reshape(2**d, 2**d)
 
+    def _permuted_tensor(self, axes, inverse=False):
+        if inverse:
+            axes = np.argsort(axes)
+
+        op_axes = [[2*n, 2*n+1] for n in axes]
+        op_axes = [v for sublist in op_axes for v in sublist]
+
+        return np.transpose(self._t, op_axes)
+
+
     def permute_qubits(self, axes, inverse=False):
         """
         Permute the qubits (i.e., both the incoming and outgoing wires)
@@ -131,13 +141,8 @@ class Operator(Tensor):
             If true, perform the inverse permutation of the qubits.
         """
 
-        if inverse:
-            axes = np.argsort(axes)
+        self._t = self._permuted_tensor(axes, inverse=inverse)
 
-        op_axes = [[2*n, 2*n+1] for n in axes]
-        op_axes = [v for sublist in op_axes for v in sublist]
-
-        self._t = np.transpose(self._t, op_axes)
 
     def swap_qubits(self, axis1, axis2):
         """
@@ -207,11 +212,6 @@ class Operator(Tensor):
             operator to the argument.
         """
 
-        # TODO: this is necessary because of the temporary qubit permutation on the argument
-        # inside this method. If we apply an operator to itself, as in C(C), this
-        # will cause problems.
-        arg = copy.deepcopy(arg)
-
         if type(arg) is Operator:
             d = arg.rank // 2
             arg_indices = list(range(0, 2*d, 2))
@@ -245,10 +245,9 @@ class Operator(Tensor):
         non_application_indices = sorted(list(set(range(d))  - set(qubit_indices)))
         application_permutation = qubit_indices + non_application_indices
 
-        arg.permute_qubits(application_permutation)
+        arg_t = arg._permuted_tensor(application_permutation)
         arg_indices = arg_indices[:len(qubit_indices)]
-        result = np.tensordot(self._t, arg._t, (op_indices, arg_indices))
-        arg.permute_qubits(application_permutation, inverse=True)
+        result = np.tensordot(self._t, arg_t, (op_indices, arg_indices))
 
         # Our convention is to have lower and upper indices of operators interleaved.
         # Using tensordot on operator-operator application leaves us with all upper

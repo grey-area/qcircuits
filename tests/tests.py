@@ -3,7 +3,7 @@ import unittest
 import copy
 import numpy as np
 from itertools import product
-from scipy.stats import unitary_group, dirichlet
+from scipy.stats import unitary_group, dirichlet, binom
 
 import sys
 sys.path.append('..')
@@ -994,6 +994,8 @@ from quantum_teleportation import quantum_teleportation
 from superdense_coding import superdense_coding
 import produce_bell_states
 import quantum_parallelism
+from phase_estimation import phase_estimation
+import grover_algorithm
 
 def deutsch_function(L):
     return lambda x: L[x]
@@ -1022,6 +1024,15 @@ class TestExamples(unittest.TestCase):
                     self.assertTrue(not(any(measurements)))
                 else:
                     self.assertTrue(any(measurements))
+
+    def test_grover_algorithm_example(self):
+        num_tests = 3
+
+        for test_i in range(num_tests):
+            d = np.random.randint(8, 11)
+            f = grover_algorithm.construct_problem(d)
+            measurements = grover_algorithm.grover_algorithm(d, f)
+            self.assertTrue(f(*measurements))
 
     def test_quantum_teleportation_example(self):
         num_tests = 10
@@ -1054,6 +1065,31 @@ class TestExamples(unittest.TestCase):
         f = quantum_parallelism.construct_problem()
         quantum_parallelism.quantum_parallelism(f)
 
+    def test_quantum_parallelism_example(self):
+        t = 7
+        num_trials = 10
+        failures = np.zeros(t)
+
+        # per-bit failure rates are pretty certain to be less than these
+        ts = np.array(range(t, 0, -1))
+        epsilons = 1 / (2 * np.exp(ts) - 2)
+        limits = np.array([binom(num_trials, e).ppf(0.9999) for e in epsilons])
+
+        for trial_i in range(num_trials):
+
+            phi, phi_estimate = phase_estimation(d=1, t=t)
+
+            phi_b = [int(i) for i in bin(int(phi * 2**t))[2:]]
+            est_b = [int(i) for i in bin(int(phi_estimate * 2**t))[2:]]
+            if len(phi_b) < t:
+                phi_b = (t-len(phi_b))*[0] + phi_b
+            if len(est_b) < t:
+                est_b = (t-len(est_b))*[0] + est_b
+            phi_b = np.array(phi_b)
+            est_b = np.array(est_b)
+            failures += (phi_b != est_b)
+
+        self.assertEqual(np.sum(failures > limits), 0)
 
 if __name__ == '__main__':
     unittest.main()

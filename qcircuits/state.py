@@ -64,7 +64,7 @@ class State(Tensor):
         return s
 
     def __str__(self):
-        s = '{}-qubit state.'.format(self.rank // 2)
+        s = '{}-qubit state.'.format(self.rank)
         s += ' Tensor:\n'
         s += super().__str__()
         return s
@@ -108,6 +108,12 @@ class State(Tensor):
 
         return self._t.flatten()
 
+    def _permuted_tensor(self, axes, inverse=False):
+        if inverse:
+            axes = np.argsort(axes)
+
+        return np.transpose(self._t, axes)
+
     def permute_qubits(self, axes, inverse=False):
         """
         Permute the qubits in the state. Equivalent to crossing
@@ -121,10 +127,7 @@ class State(Tensor):
             If true, perform the inverse permutation of the qubits.
         """
 
-        if inverse:
-            axes = np.argsort(axes)
-
-        self._t = np.transpose(self._t, axes)
+        self._t = self._permuted_tensor(axes, inverse=inverse)
 
     def swap_qubits(self, axis1, axis2):
         """

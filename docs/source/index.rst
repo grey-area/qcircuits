@@ -23,11 +23,11 @@ Summary
 Documentation, tutorial, and examples
 =====================================
 
+* :ref:`Tutorial<tutorial_page>`
+* :ref:`Examples<examples_page>`
 * :ref:`State module<state_module>`
 * :ref:`Operators module<operators_module>`
 * :ref:`Tensors module<tensors_module>`
-* :ref:`Tutorial<tutorial_page>`
-* :ref:`Examples<examples_page>`
 
 .. * :ref:`genindex`
 
