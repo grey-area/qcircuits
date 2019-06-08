@@ -55,7 +55,7 @@ an arbitrary computational basis state. E.g., to prepare the state
 A single qubit may be prepared with the :py:func:`.qubit` function.
 A qubit :math:`|\phi⟩ = \alpha |0⟩ + \beta |1⟩` may be prepared by providing
 :math:`\alpha` and :math:`\beta` such that
-:math:`\lvert\alpha\rvert^2 + \lvert\alpha\rvert^2 = 1`, e.g.,
+:math:`\lvert\alpha\rvert^2 + \lvert\beta\rvert^2 = 1`, e.g.,
 
 .. code-block:: python
 
@@ -160,6 +160,10 @@ the :py:meth:`.State.from_column_vector` static method:
     >>> phi = qc.State.from_column_vector(   # the state |010⟩
     ...     [0., 0., 1., 0., 0., 0., 0., 0.]
     ... )
+
+Note that while QCircuits allows the user to extract the tensor data from a state,
+i.e., observe a state in full, rather than just taking a measurement,
+in true quantum computation this is not possible.
 
 
 Operators
@@ -416,11 +420,45 @@ Operators can be constructed from this matrix representation using the
 Applying Operators to States
 ============================
 
-.. TODO
+Operators are applied to states as follows.
 
-.. TODO qubit indices
+.. code-block:: python
 
-.. TODO think of qubit indices as wire permutation
+    >>> H = qc.Hadamard()  # the single-qubit Hadamard gate
+    >>> x = qc.zeros(1)    # a single qubit in the |0⟩ state
+    >>> y = H(x)           # apply the Hadamard gate to the qubit to obtain an equal superposition state
+
+
+When applying an operator to a state, a qubit_indices argument can be supplied in
+order to permute the order of the state for the operator application.
+For example, the :py:func:`.CNOT` gate flips the second bit if the first bit is set:
+
+.. code-block:: python
+
+    >>> CNOT = qc.CNOT()        # the CNOT gate
+    >>> x = qc.bitstring(1, 1)  # the |11⟩ state
+    >>> y = CNOT(x)             # the resulting |10⟩ state
+
+Passing in the qubit_indices argument allows us to specify the roles of the two
+qubits explicitly. For example, the following swaps the roles of the qubits during
+operator application, so that the first qubit flips if the second is set.
+
+.. code-block:: python
+
+    >>> y = CNOT(x, qubit_indices=[1, 0])  # the resulting |01⟩ state
+
+The qubit_indices argument can also be used to apply an :math:`m`-qubit operator to an
+:math:`n`-qubit state where :math:`n>m`. For example, the following code applies a two qubit
+Hadamard operator to the first and third qubits of a six qubit state.
+
+.. code-block:: python
+
+    >>> H = qc.Hadamard(d=2)   # the two-qubit Hadamard gate
+    >>> x = qc.zeros(6)        # the six-qubit state |000000⟩ state
+    >>> y = H(x, qubit_indices=[0, 2])  # resulting state |+0+000⟩
+
+This is useful, as it is much more efficient than expanding the :math:`m`-qubit operator
+to a :math:`n`-qubit operator by taking the tensor product with the identity and then applying the result.
 
 
 
@@ -488,6 +526,15 @@ Expanding an operator to a 30-qubit operator to act on this state is not plausib
 as this would require 16 exabytes (1 million TB) of memory.
 The following section describes an alternative way to apply smaller operators to larger
 states.
+
+One can use power notation to take the tensor product of an operator or state
+with itself :math:`n` times, as in the following code that creates an :math:`n`-qubit
+operator from a single-qubit operator:
+
+.. code-block:: python
+
+    >>> Op2 = Op**n  # creating an n-qubit operator from a single-qubit operator
+
 
 
 
@@ -569,16 +616,16 @@ state, depending on if we choose to remove the measured qubits from the state.
 
 .. code-block:: python
 
-    >> phi = qc.ones(3)
-    >> phi.measure(qubit_indices=[0, 1], remove=False)
+    >>> phi = qc.ones(3)
+    >>> phi.measure(qubit_indices=[0, 1], remove=False)
     (1,1)
-    >> phi.shape
+    >>> phi.shape
     (2,2,2)
 
-    >> phi = qc.ones(3)
-    >> phi.measure(qubit_indices=[0, 1], remove=True)
+    >>> phi = qc.ones(3)
+    >>> phi.measure(qubit_indices=[0, 1], remove=True)
     (1,1)
-    >> phi.shape  # if the measured qubits are removed, we are left with state |1⟩
+    >>> phi.shape  # if the measured qubits are removed, we are left with state |1⟩
     (2,)
 
 Measuring the state :math:`(|0⟩ + |1⟩)/\sqrt{2}` yields 0 or 1 with equal probability.
@@ -588,14 +635,14 @@ in the state :math:`|0⟩` or in the state :math:`|1⟩`.
 
 .. code-block:: python
 
-    >> H = qc.Hadamard()
-    >> H(qc.zeros(1)).measure()
+    >>> H = qc.Hadamard()
+    >>> H(qc.zeros(1)).measure()
     (0,)
 
-    >> H(qc.zeros(1)).measure()
+    >>> H(qc.zeros(1)).measure()
     (1,)
 
-    >> H(qc.zeros(1)).measure()
+    >>> H(qc.zeros(1)).measure()
     (0,)
 
 
@@ -605,11 +652,41 @@ in the state :math:`|0⟩` or in the state :math:`|1⟩`.
 
 
 
-Warning: No-Cloning Theorem
+Warning: The No-Cloning Theorem
 ===========================
 
+The `no cloning theorem <https://en.wikipedia.org/wiki/No-cloning_theorem>`_ says that, in general, given a quantum system in a given state,
+one cannot clone the state such that another system is in the same state without
+modifying the state of the original system.
 
-.. TODO
+There are several ways to violate the no-cloning theorem in the QCircuits library,
+and users should be aware that none of the following constitute valid steps in a
+quantum computation.
+
+Firstly, one could simply create a deepcopy of a state.
+
+Secondly, one could extract the underlying tensor of a state and then create another state from it.
+
+Thirdly, one could apply an operator to a state, such as:
+
+.. code-block:: python
+
+    >>> y = Op(x)
+
+and then use both :math:`x` and :math:`y` in subsequent computation. It is clear that this violates the no-cloning theorem, since the operator may be the identity.
+
+Fourthly, one can take the tensor product of a state with itself, or a tensor power, as in:
+
+.. code-block:: python
+
+    >>> x * x
+    >>> x**5
+
+I have decided not to disallow any of these, since each has genuine use-cases. For example
+if we know how to prepare a single qubit in a given state, then we know how to prepare
+a multi-qubit system with each qubit in that state, and the tensor power is a short-hand way
+of achieving this.
+
 
 
 Entanglement / Schmidt Number
