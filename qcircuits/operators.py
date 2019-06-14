@@ -17,10 +17,9 @@ import numpy as np
 from qcircuits.tensors import Tensor
 
 
-class Operator(Tensor):
+class OperatorBase(Tensor):
     """
-    A container class for a tensor representing an operator on a vector
-    space for a quantum system, and associated methods.
+    A base class for operators and density operators.
 
     Parameters
     ----------
@@ -30,7 +29,6 @@ class Operator(Tensor):
 
     def __init__(self, tensor):
         super().__init__(tensor)
-        # TODO check unitary (maybe only check when applying?)
 
     @staticmethod
     def from_matrix(M):
@@ -69,38 +67,6 @@ class Operator(Tensor):
         permutation[1::2] = range(d, 2*d)
 
         return Operator(M.reshape([2] * 2 * d).transpose(permutation))
-
-    def __repr__(self):
-        s = 'Operator('
-        s += super().__str__().replace('\n', '\n' + ' ' * len(s))
-        s += ')'
-        return s
-
-    def __str__(self):
-        s = 'Operator for {}-qubit state space.'.format(self.rank // 2)
-        s += ' Tensor:\n'
-        s += super().__str__()
-        return s
-
-    @property
-    def adj(self):
-        """
-        Get the adjoint/inverse of this operator,
-        :math:`A^{\dagger} = (A^{*})^{T}`. As the operator is unitary,
-        :math:`A A^{\dagger} = I`.
-
-        Returns
-        -------
-        Operator
-            The adjoint operator.
-        """
-
-        d = self.rank
-        permutation = [0] * d
-        permutation[::2] = range(1, d, 2)
-        permutation[1::2] = range(0, d, 2)
-        t = np.conj(self._t).transpose(permutation)
-        return Operator(t)
 
     def to_matrix(self):
         """
@@ -160,6 +126,55 @@ class Operator(Tensor):
         self._t = np.swapaxes(self._t, 2*axis1, 2*axis2)
         self._t = np.swapaxes(self._t, 2*axis1 + 1, 2*axis2 + 1)
 
+
+
+class Operator(OperatorBase):
+    """
+    A container class for a tensor representing an operator on a vector
+    space for a quantum system, and associated methods.
+
+    Parameters
+    ----------
+    tensor : numpy complex128 multidimensional array
+        The tensor representing the operator.
+    """
+
+    def __init__(self, tensor):
+        super().__init__(tensor)
+        # TODO check unitary (maybe only check when applying?)
+
+    def __repr__(self):
+        s = 'Operator('
+        s += super().__str__().replace('\n', '\n' + ' ' * len(s))
+        s += ')'
+        return s
+
+    def __str__(self):
+        s = 'Operator for {}-qubit state space.'.format(self.rank // 2)
+        s += ' Tensor:\n'
+        s += super().__str__()
+        return s
+
+    @property
+    def adj(self):
+        """
+        Get the adjoint/inverse of this operator,
+        :math:`A^{\dagger} = (A^{*})^{T}`. As the operator is unitary,
+        :math:`A A^{\dagger} = I`.
+
+        Returns
+        -------
+        Operator
+            The adjoint operator.
+        """
+
+        d = self.rank
+        permutation = [0] * d
+        permutation[::2] = range(1, d, 2)
+        permutation[1::2] = range(0, d, 2)
+        t = np.conj(self._t).transpose(permutation)
+        return Operator(t)
+
     def __add__(self, arg):
         return Operator(self._t + arg._t)
 
@@ -185,7 +200,8 @@ class Operator(Tensor):
     def __call__(self, arg, qubit_indices=None):
         """
         Applies this Operator to another Operator, as in operator
-        composition A(B), or to a :py:class:`.State`, as in A(v). This means that
+        composition A(B), or to a :py:class:`.State` or :py:class:`.DensityOperator`,
+        as in A(v). This means that
         if two operators A and B will be applied to state v in sequence,
         either B(A(v)) or (B(A))(v) are valid.
 
@@ -195,7 +211,7 @@ class Operator(Tensor):
 
         Parameters
         ----------
-        arg : State or Operator
+        arg : State, Operator, or DensityOperator
             The state that the operator is applied to, or the operator
             with which the operator is composed.
         qubit_indices: list of int
@@ -207,12 +223,12 @@ class Operator(Tensor):
 
         Returns
         -------
-        State or Operator
+        State, Operator, or DensityOperator
             The state vector or operator resulting in applying the
             operator to the argument.
         """
 
-        if type(arg) is Operator:
+        if isinstance(arg, OperatorBase):
             d = arg.rank // 2
             arg_indices = list(range(0, 2*d, 2))
         else:
@@ -252,7 +268,7 @@ class Operator(Tensor):
         # Our convention is to have lower and upper indices of operators interleaved.
         # Using tensordot on operator-operator application leaves us with all upper
         # indices followed by all lower. We transpose the result to fix this.
-        if type(arg) is Operator:
+        if isinstance(arg, OperatorBase):
             permute = [0] * 2*d
             permute[: 2*d1 : 2] = range(d1)
             permute[1 : 2*d1 : 2] = range(d1, 2*d1)
@@ -261,7 +277,7 @@ class Operator(Tensor):
 
         return_val = arg.__class__(result)
         return_val.permute_qubits(application_permutation, inverse=True)
-        if type(return_val) is not Operator:
+        if not isinstance(arg, OperatorBase):
             return_val.renormalize_()
 
         return return_val
