@@ -2,6 +2,7 @@ import unittest
 
 import copy
 import numpy as np
+from numpy.testing import assert_allclose
 from itertools import product
 from scipy.stats import unitary_group, dirichlet, binom
 
@@ -671,7 +672,7 @@ class OperatorAdditionScalarMultiplicationTests(unittest.TestCase):
 
     def setUp(self):
         pass
-        
+
     def test_hadamard(self):
         """
         H = (X + Y)/sqrt(2)
@@ -696,8 +697,8 @@ class OperatorAdditionScalarMultiplicationTests(unittest.TestCase):
             ),
             epsilon
         )
-        
-            
+
+
 class OperatorCompositionTests(unittest.TestCase):
 
     def setUp(self):
@@ -917,6 +918,47 @@ class SchmidtTests(unittest.TestCase):
             )
 
 
+
+class DensityOperatorTests(unittest.TestCase):
+
+    def test_outer_product(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            d = np.random.randint(1, 8)
+            state = random_state(d)
+            result1 = qc.DensityOperator._tensor_from_state_outer_product(state)
+            result2 = qc.Operator.from_matrix(np.dot(
+                np.expand_dims(np.conj(state.to_column_vector()), 1),
+                np.expand_dims(state.to_column_vector(), 0)
+            ))._t
+
+            assert_allclose(result1, result2)
+
+    # TODO
+    '''
+    def test_operator_application(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            num_states = np.random.randint(1, 8)
+            d = np.random.randint(1, 8)
+            d = 1
+            Op = random_unitary_operator(d)
+            states = [random_state(d) for i in range(num_states)]
+            ps = dirichlet(np.ones(num_states)).rvs()[0]
+
+            rho1 = qc.DensityOperator.from_ensemble(states, ps)
+            # TODO fix operator-density operator application
+            result1 = qc.DensityOperator((qc.Operator(Op(rho1)._t)(Op.adj))._t)
+
+            post_states = [Op(state) for state in states]
+            result2 = qc.DensityOperator.from_ensemble(post_states, ps)
+
+            assert_allclose(result1, result2)
+    '''
+
+
 class FastMeasurementTests(unittest.TestCase):
 
     def test_bitstring_measurement(self):
@@ -989,7 +1031,7 @@ class FastMeasurementTests(unittest.TestCase):
 sys.path.append('../examples')
 from itertools import product
 from deutsch_algorithm import deutsch_algorithm
-import deutsch_jorza_algorithm as dj_algorithm
+import deutsch_jozsa_algorithm as dj_algorithm
 from quantum_teleportation import quantum_teleportation
 from superdense_coding import superdense_coding
 import produce_bell_states
@@ -1012,13 +1054,13 @@ class TestExamples(unittest.TestCase):
             parity = int(i!=j)
             self.assertEqual(measurement, parity)
 
-    def test_deutsch_jorza_algorithm_example(self):
+    def test_deutsch_jozsa_algorithm_example(self):
         num_tests = 10
         for problem_type in ['constant', 'balanced']:
             for test_i in range(num_tests):
                 d = np.random.randint(3, 8)
                 f = dj_algorithm.construct_problem(d, problem_type)
-                measurements = dj_algorithm.deutsch_jorza_algorithm(d, f)
+                measurements = dj_algorithm.deutsch_jozsa_algorithm(d, f)
 
                 if problem_type == 'constant':
                     self.assertTrue(not(any(measurements)))
@@ -1065,7 +1107,8 @@ class TestExamples(unittest.TestCase):
         f = quantum_parallelism.construct_problem()
         quantum_parallelism.quantum_parallelism(f)
 
-    def test_quantum_parallelism_example(self):
+    # TODO check error estimation calculation
+    def test_phase_estimation_example(self):
         t = 7
         num_trials = 10
         failures = np.zeros(t)
@@ -1073,7 +1116,7 @@ class TestExamples(unittest.TestCase):
         # per-bit failure rates are pretty certain to be less than these
         ts = np.array(range(t, 0, -1))
         epsilons = 1 / (2 * np.exp(ts) - 2)
-        limits = np.array([binom(num_trials, e).ppf(0.9999) for e in epsilons])
+        limits = np.array([binom(num_trials, e).ppf(0.99999) for e in epsilons])
 
         for trial_i in range(num_trials):
 

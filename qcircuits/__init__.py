@@ -7,6 +7,7 @@ from qcircuits.operators import Rotation, RotationX, RotationY, RotationZ
 from qcircuits.operators import CNOT, Toffoli, Swap, SqrtSwap
 from qcircuits.operators import ControlledU, U_f
 from qcircuits.operators import Operator
+from qcircuits.density_operator import DensityOperator
 
 
 __version__ = '0.4.2'

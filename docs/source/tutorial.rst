@@ -45,7 +45,7 @@ And to prepare the state :math:`|\phi⟩ = |11⟩`:
     >>> phi = qc.ones(2)  # the state |11⟩
 
 The :py:func:`.bitstring` function allows one to prepare a state in
-an arbitrary computational basis state. E.g., to prepare the state 
+an arbitrary computational basis state. E.g., to prepare the state
 :math:`|\phi⟩ = |01001⟩`:
 
 .. code-block:: python
@@ -82,7 +82,7 @@ can be prepared:
 
 The :py:func:`.positive_superposition` function may be used to prepare
 a d-qubit state in the positive equal superposition of the computational
-states. E.g., to construct the 2-qubit state 
+states. E.g., to construct the 2-qubit state
 :math:`|\phi⟩ = \big(|00⟩ + |01⟩ + |10⟩ + |11⟩ \big) / 2`:
 
 .. code-block:: python
@@ -104,7 +104,7 @@ Internally, QCircuits encodes a d-qubit state with an array of shape
 (2, 2, ..., 2), with d axes in total, representing a tensor with
 d contravariant indices. E.g., a 3-qubit state is represented by an array
 of shape (2, 2, 2), and indexing into this array with indices i, j, k
-gets the probability amplitude for the computational basis vector 
+gets the probability amplitude for the computational basis vector
 :math:`|ijk⟩`. The shape and the rank (number of axes) can be accessed
 with the :py:attr:`.State.shape` and :py:attr:`.State.rank` properties.
 
@@ -210,7 +210,7 @@ on some computational basis vectors as expected:
     1-qubit state. Tensor:
     [-0.-0.j -1.-0.j]
 
-We have seen in the above examples that operators are applied to states 
+We have seen in the above examples that operators are applied to states
 by function application, i.e., U(v), where U is an operator and v a state.
 Operator application will be described in more detail later in the tutorial.
 
@@ -247,7 +247,7 @@ question to each qubit independently. E.g., for the X gate, the returned operato
 
 By default, dimensionality of the operator and the state it is applied to
 must match. I.e., a d-qubit operator must be applied to a d-qubit state.
-Ways of applying n-qubit operators to d-qubit states where n is less than d 
+Ways of applying n-qubit operators to d-qubit states where n is less than d
 will be discussed in the sections on tensor products and operator application
 below.
 
@@ -280,7 +280,7 @@ if the first (control) qubit is in state :math:`|1⟩`.
 
 Often, we want to swap the role of the qubits, flipping the first qubit if the second
 is set, or more generally, for a d-qubit state we may want to apply the 2-qubit CNOT
-operator on any two qubits. How this is done is described in the section on 
+operator on any two qubits. How this is done is described in the section on
 operator application below.
 
 The :py:func:`.ControlledU` function takes a d-qubit operator as an argument,
@@ -301,7 +301,7 @@ the operator U is applied to the following d qubits.
 
      [[0.+0.j 0.+0.j]
       [0.+0.j 0.+0.j]]]
-    
+
     >>> print(c_H(phi1))  # the 2-qubit H operator is applied
     1-qubit state. Tensor:
     [[[0. +0.j 0. +0.j]
@@ -314,7 +314,7 @@ The :py:func:`.U_f` function takes two arguments: a function f and an integer d.
 The function f must be a boolean function of d-1 boolean arguments.
 This returns a d-qubit operator whose action is to flip the last qubit
 if the result of applying the boolean function to the first d-1 qubits is one.
-An example of its use can be found in the Deutsch-Jorza algorithm in the
+An example of its use can be found in the Deutsch-Jozsa algorithm in the
 :ref:`examples page<examples_page>`.
 
 .. TODO operator arithmetic
@@ -384,7 +384,7 @@ by providing the (2, 2, 2, 2)-shape array:
     ...                    [ 0.5, -0.5]],
     ...                   [[ 0.5,  0.5],
     ...                    [ 0.5, -0.5]]],
-    ...          
+    ...
     ...                  [[[ 0.5,  0.5],
     ...                    [ 0.5, -0.5]],
     ...                   [[-0.5, -0.5],
@@ -403,7 +403,7 @@ Hadamard gate:
      [ 0.5+0.j  0.5+0.j -0.5+0.j -0.5+0.j]
      [ 0.5+0.j -0.5+0.j -0.5+0.j  0.5+0.j]]
 
-Operators can be constructed from this matrix representation using the 
+Operators can be constructed from this matrix representation using the
 :py:meth:`.Operator.from_matrix` static method:
 
 .. code-block:: python
@@ -467,7 +467,7 @@ Tensor Products
 
 If a quantum system :math:`A` is in state :math:`|\psi⟩`, and system
 :math:`B` is in state :math:`|\phi⟩`, then the combined system
-:math:`A\otimes B` is in state :math:`|\psi⟩ \otimes |\phi⟩`, 
+:math:`A\otimes B` is in state :math:`|\psi⟩ \otimes |\phi⟩`,
 where :math:`\otimes` is the tensor product. If operator :math:`U`
 is applied to system :math:`A` and operator V applied to system :math:`B`,
 then this can be described by a single operator :math:`U\otimes V` applied
@@ -597,7 +597,7 @@ more qubits of a state with the :py:meth:`.State.measure` method,
 which returns the result of measurement.
 Post-measurement, the state collapses to the computational basis
 state corresponding to the result of the measurement of the measured
-qubits. The :py:meth:`.State.measure` method has two arguments, 
+qubits. The :py:meth:`.State.measure` method has two arguments,
 a list of indices specifying the qubits to be measured,
 and a flag specifying whether the measured qubits are to be removed from the state.
 If no indices are supplied, every qubit is measured.
@@ -653,7 +653,7 @@ in the state :math:`|0⟩` or in the state :math:`|1⟩`.
 
 
 Warning: The No-Cloning Theorem
-===========================
+===============================
 
 The `no cloning theorem <https://en.wikipedia.org/wiki/No-cloning_theorem>`_ says that, in general, given a quantum system in a given state,
 one cannot clone the state such that another system is in the same state without
@@ -695,7 +695,7 @@ Entanglement / Schmidt Number
 A state :math:`|\phi⟩` of a composite quantum system
 :math:`A\otimes B` has a Schmidt decomposition:
 :math:`|\phi⟩ = \sum_i \lambda_i |i_A⟩|i_B⟩`, where
-the *Schmidt coefficients* :math:`\lambda_i` are non-negative and the 
+the *Schmidt coefficients* :math:`\lambda_i` are non-negative and the
 :math:`|i_A⟩` and :math:`|i_B⟩` are orthonormal bases for systems
 :math:`A` and :math:`B`.
 The number of non-zero Schmidt coefficients is a measure of the entanglement
