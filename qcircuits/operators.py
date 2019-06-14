@@ -93,7 +93,6 @@ class OperatorBase(Tensor):
 
         return np.transpose(self._t, op_axes)
 
-
     def permute_qubits(self, axes, inverse=False):
         """
         Permute the qubits (i.e., both the incoming and outgoing wires)
@@ -108,7 +107,6 @@ class OperatorBase(Tensor):
         """
 
         self._t = self._permuted_tensor(axes, inverse=inverse)
-
 
     def swap_qubits(self, axis1, axis2):
         """
@@ -125,7 +123,6 @@ class OperatorBase(Tensor):
 
         self._t = np.swapaxes(self._t, 2*axis1, 2*axis2)
         self._t = np.swapaxes(self._t, 2*axis1 + 1, 2*axis2 + 1)
-
 
 
 class Operator(OperatorBase):
@@ -158,8 +155,9 @@ class Operator(OperatorBase):
     @property
     def adj(self):
         """
-        Get the adjoint/inverse of this operator,
-        :math:`A^{\dagger} = (A^{*})^{T}`. As the operator is unitary,
+        Get the adjoint of this operator,
+        :math:`A^{\dagger} = (A^{*})^{T}`.
+        If the operator is unitary,
         :math:`A A^{\dagger} = I`.
 
         Returns
@@ -173,7 +171,7 @@ class Operator(OperatorBase):
         permutation[::2] = range(1, d, 2)
         permutation[1::2] = range(0, d, 2)
         t = np.conj(self._t).transpose(permutation)
-        return Operator(t)
+        return self.__class__(t)
 
     def __add__(self, arg):
         return Operator(self._t + arg._t)
@@ -197,6 +195,7 @@ class Operator(OperatorBase):
     def __neg__(self):
         return Operator(-self._t)
 
+    # TODO different behaviour when applied to density operators
     def __call__(self, arg, qubit_indices=None):
         """
         Applies this Operator to another Operator, as in operator

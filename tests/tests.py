@@ -943,14 +943,12 @@ class DensityOperatorTests(unittest.TestCase):
         for test_i in range(num_tests):
             num_states = np.random.randint(1, 8)
             d = np.random.randint(1, 8)
-            d = 1
             Op = random_unitary_operator(d)
             states = [random_state(d) for i in range(num_states)]
             ps = dirichlet(np.ones(num_states)).rvs()[0]
 
             rho1 = qc.DensityOperator.from_ensemble(states, ps)
-            # TODO fix operator-density operator application
-            result1 = qc.DensityOperator((qc.Operator(Op(rho1)._t)(Op.adj))._t)
+            result1 = Op(rho1)
 
             post_states = [Op(state) for state in states]
             result2 = qc.DensityOperator.from_ensemble(post_states, ps)
