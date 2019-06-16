@@ -129,6 +129,7 @@ class State(Tensor):
         """
 
         self._t = self._permuted_tensor(axes, inverse=inverse)
+        return self
 
     def swap_qubits(self, axis1, axis2):
         """
@@ -144,6 +145,7 @@ class State(Tensor):
         """
 
         self._t = np.swapaxes(self._t, axis1, axis2)
+        return self
 
     def __add__(self, arg):
         return State(self._t + arg._t)

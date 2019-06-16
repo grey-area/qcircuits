@@ -107,6 +107,7 @@ class OperatorBase(Tensor):
         """
 
         self._t = self._permuted_tensor(axes, inverse=inverse)
+        return self
 
     def swap_qubits(self, axis1, axis2):
         """
@@ -123,6 +124,7 @@ class OperatorBase(Tensor):
 
         self._t = np.swapaxes(self._t, 2*axis1, 2*axis2)
         self._t = np.swapaxes(self._t, 2*axis1 + 1, 2*axis2 + 1)
+        return self
 
 
 class Operator(OperatorBase):
