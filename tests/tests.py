@@ -953,6 +953,26 @@ class DensityOperatorTests(unittest.TestCase):
 
             assert_allclose(result1._t, result2._t)
 
+    def test_operator_subsystem_application(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            num_states = np.random.randint(1, 8)
+            d = np.random.randint(1, 8)
+            application_d = np.random.randint(1, d + 1)
+            Op = random_unitary_operator(application_d)
+            application_idx = np.random.choice(d, size=application_d, replace=False)
+            states = [random_state(d) for i in range(num_states)]
+            ps = dirichlet(np.ones(num_states)).rvs()[0]
+
+            rho1 = qc.DensityOperator.from_ensemble(states, ps)
+            result1 = Op(rho1, qubit_indices=application_idx)
+
+            post_states = [Op(state, qubit_indices=application_idx) for state in states]
+            result2 = qc.DensityOperator.from_ensemble(post_states, ps)
+
+            assert_allclose(result1._t, result2._t)
+
     def test_permutation_of_density_operators(self):
         num_tests = 10
 
