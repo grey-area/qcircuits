@@ -271,9 +271,8 @@ class State(Tensor):
         """
         Measure the state with respect to the computational bases
         of the qubits indicated by `qubit_indices`.
-        Unlike operator application, with returns the resulting state,
-        measuring a state will modify the state itself. If no indices
-        are indicated, the whole state is measured.
+        Measuring a state will modify the state in-place.
+        If no indices are indicated, the whole state is measured.
 
         Parameters
         ----------

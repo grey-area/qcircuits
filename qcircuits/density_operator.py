@@ -92,6 +92,7 @@ class DensityOperator(OperatorBase):
 
         return result.transpose(permutation)
 
+    # TODO call this from the measure method
     def _measurement_probabilites(self, qubit_indices):
         # Put non-measured qubits up front
         unmeasured_indices = list(set(range(self.rank // 2)) - set(qubit_indices))
@@ -107,6 +108,30 @@ class DensityOperator(OperatorBase):
         return ps
 
     def measure(self, qubit_indices=None):
+        """
+        Measure the state with respect to the computational bases
+        of the qubits indicated by `qubit_indices`.
+        Measuring a state will modify the state in-place.
+        If no indices are indicated, the whole state is measured.
+
+        Parameters
+        ----------
+        qubit_indices : int or iterable
+            An index or indices indicating the qubit(s) whose
+            computational bases the measurement of the state will be
+            made with respect to. If no `qubit_indices` are given,
+            the whole state is measured.
+        remove : bool
+            Indicates whether the measured qubits should be removed from
+            the state vector.
+
+        Returns
+        -------
+        int or tuple of int
+            The measurement outcomes for the measured qubit(s).
+            If the `qubit_indices` parameter is supplied as an int,
+            an int is returned, otherwise a tuple.
+        """
 
         # If an int argument for qubit_indices is supplied, the return
         # value should be an int giving the single measurement outcome.
