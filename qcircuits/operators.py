@@ -68,6 +68,12 @@ class OperatorBase(Tensor):
 
         return Operator(M.reshape([2] * 2 * d).transpose(permutation))
 
+    @staticmethod
+    def _tensor_to_matrix(t):
+        d = len(t.shape) // 2
+        permutation = list(range(0, 2*d, 2)) + list(range(1, 2*d, 2))
+        return t.transpose(permutation).reshape(2**d, 2**d)
+
     def to_matrix(self):
         """
         QCircuits represents operators for d-qubit systems with type (d, d) tensors.
@@ -80,9 +86,7 @@ class OperatorBase(Tensor):
             The matrix representation of the operator.
         """
 
-        d = len(self.shape) // 2
-        permutation = list(range(0, 2*d, 2)) + list(range(1, 2*d, 2))
-        return self._t.transpose(permutation).reshape(2**d, 2**d)
+        return self._tensor_to_matrix(self._t)
 
     @property
     def adj(self):

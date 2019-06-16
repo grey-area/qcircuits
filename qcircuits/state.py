@@ -258,6 +258,14 @@ class State(Tensor):
         U, D, V = np.linalg.svd(M)
         return np.sum(D > 1e-10)
 
+    def _measurement_probabilites(self, qubit_indices):
+        num_outcomes = 2**len(qubit_indices)
+        unmeasured_indices = list(set(range(self.rank)) - set(qubit_indices))
+        permute = qubit_indices + unmeasured_indices
+        amplitudes = np.transpose(self._t, permute)
+        ps = np.reshape(np.real(amplitudes * np.conj(amplitudes)), (num_outcomes, -1)).sum(axis=1)
+
+        return ps, num_outcomes, amplitudes, permute
 
     def measure(self, qubit_indices=None, remove=False):
         """
@@ -310,12 +318,8 @@ class State(Tensor):
         if len(qubit_indices) != len(set(qubit_indices)):
             raise ValueError('Qubit indices list contains repeated elements.')
 
-        # The probability of each outcome for the qubits being measured
-        num_outcomes = 2**len(qubit_indices)
-        unmeasured_indices = list(set(range(self.rank)) - set(qubit_indices))
-        permute = qubit_indices + unmeasured_indices
-        amplitudes = np.transpose(self._t, permute)
-        ps = np.reshape(np.real(amplitudes * np.conj(amplitudes)), (num_outcomes, -1)).sum(axis=1)
+        # Compute probability of each outcome for the qubits being measured
+        ps, num_outcomes, amplitudes, permute = self._measurement_probabilites(qubit_indices)
 
         # The binary representation of the measured state
         outcome = np.random.choice(num_outcomes, p=ps)

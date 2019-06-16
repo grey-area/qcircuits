@@ -1012,6 +1012,27 @@ class DensityOperatorTests(unittest.TestCase):
 
             assert_allclose(rho1._t, rho2._t)
 
+    def test_measurement_probabilities(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            num_states = np.random.randint(1, 8)
+            d = np.random.randint(2, 8)
+            states = [random_state(d) for i in range(num_states)]
+            ensemble_ps = dirichlet(np.ones(num_states)).rvs()[0]
+            rho = qc.DensityOperator.from_ensemble(states, ensemble_ps)
+
+            measurement_d = np.random.randint(1, d + 1)
+            measurement_qubits = list(np.random.choice(d, size=measurement_d, replace=False))
+
+            ps1 = rho._measurement_probabilites(qubit_indices=measurement_qubits)
+            ps2 = np.zeros_like(ps1)
+            for ensemble_p, state in zip(ensemble_ps, states):
+                ps, _, _, _ = state._measurement_probabilites(qubit_indices=measurement_qubits)
+                ps2 += ensemble_p * ps
+
+            assert_allclose(ps1, ps2)
+
 
 class FastMeasurementTests(unittest.TestCase):
 

@@ -91,3 +91,20 @@ class DensityOperator(OperatorBase):
         permutation = [v for pair in zip(range(d//2, d), range(0, d//2)) for v in pair]
 
         return result.transpose(permutation)
+
+    def _measurement_probabilites(self, qubit_indices):
+        # Put non-measured qubits up front
+        unmeasured_indices = list(set(range(self.rank // 2)) - set(qubit_indices))
+        permute = unmeasured_indices + qubit_indices
+
+        t = self._permuted_tensor(permute)
+
+        # TODO do this in a single operation
+        for _ in range(len(unmeasured_indices)):
+            t = np.sum(t[[0, 1], [0, 1], ...], axis=0)
+
+        ps = np.diag(OperatorBase._tensor_to_matrix(t))
+        return ps
+
+    def measure(self, qubit_indices=None):
+        pass
