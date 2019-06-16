@@ -84,6 +84,27 @@ class OperatorBase(Tensor):
         permutation = list(range(0, 2*d, 2)) + list(range(1, 2*d, 2))
         return self._t.transpose(permutation).reshape(2**d, 2**d)
 
+    @property
+    def adj(self):
+        """
+        Get the adjoint of this operator,
+        :math:`A^{\dagger} = (A^{*})^{T}`.
+        If the operator is unitary,
+        :math:`A A^{\dagger} = I`.
+
+        Returns
+        -------
+        Operator
+            The adjoint operator.
+        """
+
+        d = self.rank
+        permutation = [0] * d
+        permutation[::2] = range(1, d, 2)
+        permutation[1::2] = range(0, d, 2)
+        t = np.conj(self._t).transpose(permutation)
+        return self.__class__(t)
+
     def _permuted_tensor(self, axes, inverse=False):
         if inverse:
             axes = np.argsort(axes)
@@ -127,6 +148,9 @@ class OperatorBase(Tensor):
         return self
 
 
+from qcircuits.density_operator import DensityOperator
+
+
 class Operator(OperatorBase):
     """
     A container class for a tensor representing an operator on a vector
@@ -154,27 +178,6 @@ class Operator(OperatorBase):
         s += super().__str__()
         return s
 
-    @property
-    def adj(self):
-        """
-        Get the adjoint of this operator,
-        :math:`A^{\dagger} = (A^{*})^{T}`.
-        If the operator is unitary,
-        :math:`A A^{\dagger} = I`.
-
-        Returns
-        -------
-        Operator
-            The adjoint operator.
-        """
-
-        d = self.rank
-        permutation = [0] * d
-        permutation[::2] = range(1, d, 2)
-        permutation[1::2] = range(0, d, 2)
-        t = np.conj(self._t).transpose(permutation)
-        return self.__class__(t)
-
     def __add__(self, arg):
         return Operator(self._t + arg._t)
 
@@ -197,38 +200,7 @@ class Operator(OperatorBase):
     def __neg__(self):
         return Operator(-self._t)
 
-    # TODO different behaviour when applied to density operators
-    def __call__(self, arg, qubit_indices=None):
-        """
-        Applies this Operator to another Operator, as in operator
-        composition A(B), or to a :py:class:`.State` or :py:class:`.DensityOperator`,
-        as in A(v). This means that
-        if two operators A and B will be applied to state v in sequence,
-        either B(A(v)) or (B(A))(v) are valid.
-
-        A d-qubit operator may be applied to an n-qubit system with :math:`n>d`
-        if the qubits to which it is to be applied are specified in the
-        `qubit_indices` parameter.
-
-        Parameters
-        ----------
-        arg : State, Operator, or DensityOperator
-            The state that the operator is applied to, or the operator
-            with which the operator is composed.
-        qubit_indices: list of int
-            If the operator is applied to a larger
-            quantum system, the user must supply a list of the indices
-            of the qubits to which the operator is to be applied.
-            These can also be used to apply the operator to the qubits
-            in arbitrary order.
-
-        Returns
-        -------
-        State, Operator, or DensityOperator
-            The state vector or operator resulting in applying the
-            operator to the argument.
-        """
-
+    def _apply(self, arg, qubit_indices=None):
         if isinstance(arg, OperatorBase):
             d = arg.rank // 2
             arg_indices = list(range(0, 2*d, 2))
@@ -282,6 +254,51 @@ class Operator(OperatorBase):
             return_val.renormalize_()
 
         return return_val
+
+    def __call__(self, arg, qubit_indices=None):
+        """
+        Applies this Operator to another Operator, as in operator
+        composition A(B), or to a :py:class:`.State` or :py:class:`.DensityOperator`,
+        as in A(v). This means that
+        if two operators A and B will be applied to state v in sequence,
+        either B(A(v)) or (B(A))(v) are valid.
+
+        A d-qubit operator may be applied to an n-qubit system with :math:`n>d`
+        if the qubits to which it is to be applied are specified in the
+        `qubit_indices` parameter.
+
+        If x represents state :math:`|\\phi⟩` and A an operator,
+        A(x) represents the state :math:`A |\\phi⟩`.
+        If x represents density operator (mixed state)
+        :math:`\\rho`, then A(x) represents the state
+        :math:`A \\rho A^{\dagger}.`
+
+        Parameters
+        ----------
+        arg : State, Operator, or DensityOperator
+            The state that the operator is applied to, or the operator
+            with which the operator is composed.
+        qubit_indices: list of int
+            If the operator is applied to a larger
+            quantum system, the user must supply a list of the indices
+            of the qubits to which the operator is to be applied.
+            These can also be used to apply the operator to the qubits
+            in arbitrary order.
+
+        Returns
+        -------
+        State, Operator, or DensityOperator
+            The state vector or operator resulting in applying the
+            operator to the argument.
+        """
+
+        if isinstance(arg, DensityOperator):
+            return self._apply(
+                self._apply(arg.adj, qubit_indices).adj,
+                qubit_indices
+            )
+        else:
+            return self._apply(arg, qubit_indices)
 
 
 # Factory functions for building operators

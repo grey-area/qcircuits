@@ -929,14 +929,12 @@ class DensityOperatorTests(unittest.TestCase):
             state = random_state(d)
             result1 = qc.DensityOperator._tensor_from_state_outer_product(state)
             result2 = qc.Operator.from_matrix(np.dot(
-                np.expand_dims(np.conj(state.to_column_vector()), 1),
-                np.expand_dims(state.to_column_vector(), 0)
+                np.expand_dims(state.to_column_vector(), 1),
+                np.expand_dims(np.conj(state.to_column_vector()), 0)
             ))._t
 
             assert_allclose(result1, result2)
 
-    # TODO
-    '''
     def test_operator_application(self):
         num_tests = 10
 
@@ -953,8 +951,7 @@ class DensityOperatorTests(unittest.TestCase):
             post_states = [Op(state) for state in states]
             result2 = qc.DensityOperator.from_ensemble(post_states, ps)
 
-            assert_allclose(result1, result2)
-    '''
+            assert_allclose(result1._t, result2._t)
 
 
 class FastMeasurementTests(unittest.TestCase):

@@ -88,6 +88,6 @@ class DensityOperator(OperatorBase):
     def _tensor_from_state_outer_product(state):
         result = np.tensordot(np.conj(state._t), state._t, axes=0)
         d = len(result.shape)
-        permutation = [v for pair in zip(range(0, d//2), range(d//2, d)) for v in pair]
+        permutation = [v for pair in zip(range(d//2, d), range(0, d//2)) for v in pair]
 
         return result.transpose(permutation)
