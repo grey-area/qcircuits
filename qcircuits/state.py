@@ -118,7 +118,9 @@ class State(Tensor):
     def permute_qubits(self, axes, inverse=False):
         """
         Permute the qubits in the state. Equivalent to crossing
-        wires in a circuit.
+        wires in a circuit. This method modifies the state in-place,
+        but also returns the resulting state to allow chaining of
+        operations.
 
         Parameters
         ----------
@@ -126,6 +128,11 @@ class State(Tensor):
             Permute the qubits according to the values given.
         inverse : bool
             If true, perform the inverse permutation of the qubits.
+
+        Returns
+        -------
+        State
+            The resulting state.
         """
 
         self._t = self._permuted_tensor(axes, inverse=inverse)
@@ -134,7 +141,9 @@ class State(Tensor):
     def swap_qubits(self, axis1, axis2):
         """
         Swap two qubits in the state. Equivalent to crossing
-        wires in a circuit.
+        wires in a circuit. This method modifies the state in-place,
+        but also returns the resulting state to allow chaining of
+        operations.
 
         Parameters
         ----------
@@ -142,6 +151,11 @@ class State(Tensor):
             First axis.
         axis2 : int
             Second axis.
+
+        Returns
+        -------
+        State
+            The resulting state.
         """
 
         self._t = np.swapaxes(self._t, axis1, axis2)

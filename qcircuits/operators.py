@@ -117,7 +117,9 @@ class OperatorBase(Tensor):
     def permute_qubits(self, axes, inverse=False):
         """
         Permute the qubits (i.e., both the incoming and outgoing wires)
-        of the operator.
+        of the operator. This method modifies the operator in-place,
+        but also returns the resulting operator to allow chaining of
+        operations.
 
         Parameters
         ----------
@@ -125,6 +127,11 @@ class OperatorBase(Tensor):
             Permute the qubits according to the values given.
         inverse : bool
             If true, perform the inverse permutation of the qubits.
+
+        Returns
+        -------
+        Operator
+            The resulting operator.
         """
 
         self._t = self._permuted_tensor(axes, inverse=inverse)
@@ -133,7 +140,9 @@ class OperatorBase(Tensor):
     def swap_qubits(self, axis1, axis2):
         """
         Swap two qubits (i.e., both the incoming and outgoing wires)
-        of the operator.
+        of the operator. This method modifies the operator in-place,
+        but also returns the resulting operator to allow chaining of
+        operations.
 
         Parameters
         ----------
@@ -141,6 +150,11 @@ class OperatorBase(Tensor):
             First axis.
         axis2 : int
             Second axis.
+
+        Returns
+        -------
+        Operator
+            The resulting operator.
         """
 
         self._t = np.swapaxes(self._t, 2*axis1, 2*axis2)
