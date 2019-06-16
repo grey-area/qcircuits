@@ -953,6 +953,45 @@ class DensityOperatorTests(unittest.TestCase):
 
             assert_allclose(result1._t, result2._t)
 
+    def test_permutation_of_density_operators(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            num_states = np.random.randint(1, 8)
+            d = np.random.randint(2, 8)
+            permutation = np.arange(d)
+            np.random.shuffle(permutation)
+            states = [random_state(d) for i in range(num_states)]
+            ps = dirichlet(np.ones(num_states)).rvs()[0]
+            
+            rho1 = qc.DensityOperator.from_ensemble(states, ps)
+            rho1.permute_qubits(permutation)
+
+            for state in states:
+                state.permute_qubits(permutation)
+            rho2 = qc.DensityOperator.from_ensemble(states, ps)
+
+            assert_allclose(rho1._t, rho2._t)
+
+    def test_qubit_swap_of_density_operators(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            num_states = np.random.randint(1, 8)
+            d = np.random.randint(2, 8)
+            idx1, idx2 = np.random.choice(d, size=2, replace=False)
+            states = [random_state(d) for i in range(num_states)]
+            ps = dirichlet(np.ones(num_states)).rvs()[0]
+            
+            rho1 = qc.DensityOperator.from_ensemble(states, ps)
+            rho1.swap_qubits(idx1, idx2)
+
+            for state in states:
+                state.swap_qubits(idx1, idx2)
+            rho2 = qc.DensityOperator.from_ensemble(states, ps)
+
+            assert_allclose(rho1._t, rho2._t)
+
 
 class FastMeasurementTests(unittest.TestCase):
 

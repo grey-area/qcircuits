@@ -259,7 +259,7 @@ class Operator(OperatorBase):
         """
         Applies this Operator to another Operator, as in operator
         composition A(B), or to a :py:class:`.State` or :py:class:`.DensityOperator`,
-        as in A(v). This means that
+        as in A(v). Via operator composition,
         if two operators A and B will be applied to state v in sequence,
         either B(A(v)) or (B(A))(v) are valid.
 
