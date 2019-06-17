@@ -6,13 +6,11 @@ Full documentation at `www.awebb.info/qcircuits/index.html <http://www.awebb.inf
 
 .. inclusion-marker0-do-not-remove
 
-QCircuits is a lightweight Python package for simulating the operation of
-small-scale quantum computers, based on the
+QCircuits is a Python package for simulating quantum computers based on the
 `quantum circuit model <https://en.wikipedia.org/wiki/Quantum_circuit>`_.
-It uses type (`d`, 0) and type (`d`, `d`) tensors to represent state vectors
-for and operators on `d`-qubit systems,
-rather than using straight vectors and matrices
-produced by Kronecker products, as is more typical.
+It has been designed to have a simple, lightweight interface and be
+easy to use, particularly for those new to quantum computing.
+
 
 .. inclusion-marker1-do-not-remove
 
@@ -34,12 +32,10 @@ Example usage: quantum teleportation
 
 .. inclusion-marker2-do-not-remove
 
-Quantum teleportation example:
-
 Quantum circuit:
 
 .. image:: http://www.awebb.info/qcircuits/_images/teleport.png
-    :scale: 50%
+    :scale: 40%
 
 Code::
 

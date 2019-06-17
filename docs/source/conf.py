@@ -81,6 +81,10 @@ pygments_style = None
 #
 html_theme = 'sphinx_rtd_theme'
 
+html_logo = 'images_src/logo/logo_180px.png'
+
+html_favicon = 'images_src/logo/icon.ico'
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.

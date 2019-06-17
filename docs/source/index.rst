@@ -43,12 +43,10 @@ or from the source at `github.com/grey-area/qcircuits <https://github.com/grey-a
 
 See the :ref:`examples page<examples_page>` for more examples.
 
-Quantum teleportation example:
-
 Quantum circuit:
 
 .. image:: images/teleport.png
-    :width: 100%
+    :width: 90%
 
 Code:
 
