@@ -1169,6 +1169,55 @@ class DensityOperatorTests(unittest.TestCase):
 
                 assert_allclose(rho._t, rho2._t)
 
+    # We can use Bayes rule and knowledge of the probability of
+    # a given measurement outcome for each state in the ensemble
+    # to compute a posterior distribution over the states, given
+    # a measurement. We can compute another density operator from
+    # the posterior, and compare it to the result of doing the
+    # measurement on the density operator directly
+    def test_post_measurement_state_for_mixed_states(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            for remove in [False, True]:
+                num_states = np.random.randint(1, 8)
+                d = np.random.randint(2, 8)
+                states = [random_state(d) for i in range(num_states)]
+                ensemble_ps = dirichlet(np.ones(num_states)).rvs()[0]
+                rho = qc.DensityOperator.from_ensemble(states, ensemble_ps)
+
+                max_measurement_d = min(d - 1, 4)
+                measurement_d = np.random.randint(1, max_measurement_d + 1)
+                measure_idx = list(np.random.choice(d, size=measurement_d, replace=False))
+
+                density_m = rho.measure(measure_idx, remove=remove)
+                outcome = int(''.join([str(i) for i in density_m]), 2)
+
+                p_m_given_i = []
+                for state in states:
+                    ps, _, _, _ = state._measurement_probabilites(measure_idx)
+                    p_m_given_i.append(ps[outcome])
+                p_m_given_i = np.array(p_m_given_i)
+
+                post_measurement_states = []
+                for state in states:
+                    state_m = None
+                    state1 = None
+                    while state_m != density_m:
+                        state1 = copy.deepcopy(state)
+                        state_m = state1.measure(measure_idx, remove=remove)
+                    post_measurement_states.append(state1)
+
+                p_i_given_m = p_m_given_i * ensemble_ps
+                p_i_given_m /= np.sum(p_i_given_m)
+
+                rho2 = qc.DensityOperator.from_ensemble(
+                    post_measurement_states,
+                    p_i_given_m
+                )
+
+                assert_allclose(rho._t, rho2._t)
+
 
 class FastMeasurementTests(unittest.TestCase):
 
