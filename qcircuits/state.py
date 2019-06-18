@@ -10,7 +10,6 @@ instead of ``qcircuits.state.zeros()``.
 import numpy as np
 
 from qcircuits.tensors import Tensor
-import qcircuits.operators as operators
 
 
 class State(Tensor):
@@ -310,6 +309,9 @@ class State(Tensor):
 
         qubit_indices = list(qubit_indices)
 
+        if qubit_indices == []:
+            raise ValueError('Must measure at least one qubit.')
+
         if min(qubit_indices) < 0 or max(qubit_indices) >= self.rank:
             raise ValueError('Trying to measure qubit index i not 0<=i<d, '
                              'where d is the rank of the state vector.')
@@ -348,6 +350,8 @@ class State(Tensor):
 
 
 # Factory functions for building States
+from qcircuits.operators import Hadamard, CNOT
+
 
 def qubit(*, alpha=None, beta=None,
           theta=None, phi=None,
@@ -536,7 +540,7 @@ def positive_superposition(d=1):
     if d < 1:
         raise ValueError('Rank must be at least 1.')
 
-    H = operators.Hadamard(d)
+    H = Hadamard(d)
     x = zeros(d)
     return H(x)
 
@@ -571,6 +575,6 @@ def bell_state(a=0, b=0):
         raise ValueError('Bell state arguments are bits, and must be 0 or 1.')
 
     phi = bitstring(a, b)
-    phi = operators.Hadamard()(phi, qubit_indices=[0])
+    phi = Hadamard()(phi, qubit_indices=[0])
 
-    return operators.CNOT()(phi)
+    return CNOT()(phi)

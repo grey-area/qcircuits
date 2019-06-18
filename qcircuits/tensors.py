@@ -23,10 +23,6 @@ class Tensor:
     def __getitem__(self, key):
         return self._t[key]
 
-    # TODO include the setter?
-    #def __setitem__(self, key, value):
-    #    self._t[key] = value
-
     @property
     def shape(self):
         """

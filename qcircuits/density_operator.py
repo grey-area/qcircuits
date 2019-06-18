@@ -92,22 +92,22 @@ class DensityOperator(OperatorBase):
 
         return result.transpose(permutation)
 
-    # TODO call this from the measure method
     def _measurement_probabilites(self, qubit_indices):
         # Put non-measured qubits up front
-        unmeasured_indices = list(set(range(self.rank // 2)) - set(qubit_indices))
-        permute = unmeasured_indices + qubit_indices
+        unmeasured_indices = list(
+            set(range(self.rank // 2)) - set(qubit_indices)
+        )
+        t = self._permuted_tensor(unmeasured_indices + qubit_indices)
 
-        t = self._permuted_tensor(permute)
-
+        # Trace out unmeasured bits
         # TODO do this in a single operation
         for _ in range(len(unmeasured_indices)):
             t = np.sum(t[[0, 1], [0, 1], ...], axis=0)
 
-        ps = np.diag(OperatorBase._tensor_to_matrix(t))
-        return ps
+        ps = np.real(np.diag(OperatorBase._tensor_to_matrix(t)))
+        return ps, unmeasured_indices
 
-    def measure(self, qubit_indices=None):
+    def measure(self, qubit_indices=None, remove=False):
         """
         Measure the state with respect to the computational bases
         of the qubits indicated by `qubit_indices`.
@@ -133,6 +133,10 @@ class DensityOperator(OperatorBase):
             an int is returned, otherwise a tuple.
         """
 
+        from qcircuits.state import bitstring
+
+        # TODO check positive with trace 1.
+
         # If an int argument for qubit_indices is supplied, the return
         # value should be an int giving the single measurement outcome.
         # Otherwise, qubit_indices should be an iterable type and the
@@ -147,6 +151,9 @@ class DensityOperator(OperatorBase):
 
         qubit_indices = list(qubit_indices)
 
+        if qubit_indices == []:
+            raise ValueError('Must measure at least one qubit.')
+
         if min(qubit_indices) < 0 or max(qubit_indices) >= self.rank // 2:
             raise ValueError('Trying to measure qubit index i not 0<=i<d, '
                              'where d is the rank of the state vector.')
@@ -154,23 +161,30 @@ class DensityOperator(OperatorBase):
         if len(qubit_indices) != len(set(qubit_indices)):
             raise ValueError('Qubit indices list contains repeated elements.')
 
-        # Put non-measured qubits up front
-        unmeasured_indices = list(set(range(self.rank // 2)) - set(qubit_indices))
-        permute = unmeasured_indices + qubit_indices
-
-        t = self._permuted_tensor(permute)
-
-        # TODO do this in a single operation
-        for _ in range(len(unmeasured_indices)):
-            t = np.sum(t[[0, 1], [0, 1], ...], axis=0)
-
-        ps = np.real(np.diag(OperatorBase._tensor_to_matrix(t)))
+        # Get measurement outcome probabilities
+        ps, unmeasured_indices = self._measurement_probabilites(qubit_indices)
 
         num_outcomes = 2**len(qubit_indices)
         outcome = np.random.choice(num_outcomes, p=ps)
-        bits = tuple([outcome >> i & 1 for i in range(len(qubit_indices)-1, -1, -1)])
+        bits = tuple(
+            [outcome >> i & 1 for i in range(len(qubit_indices)-1, -1, -1)]
+        )
 
-        # TODO post-measurement state
+        # Post-measurement state
+        permute = qubit_indices + unmeasured_indices
+        t = self._permuted_tensor(permute)
+        idx = tuple(np.repeat(bits, 2))
+        # Index in and renormalize
+        self._t = t[idx] / ps[outcome]
+
+        # If the measured qubits are not to be removed from the state
+        # then insert them back in
+        if not remove:
+            measured_t = DensityOperator._tensor_from_state_outer_product(
+                bitstring(*bits)
+            )
+            self._t = np.tensordot(measured_t, self._t, axes=0)
+            self.permute_qubits(permute, inverse=True)
 
         if int_arg:
             bits = bits[0]

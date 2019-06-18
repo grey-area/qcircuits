@@ -1025,13 +1025,149 @@ class DensityOperatorTests(unittest.TestCase):
             measurement_d = np.random.randint(1, d + 1)
             measurement_qubits = list(np.random.choice(d, size=measurement_d, replace=False))
 
-            ps1 = rho._measurement_probabilites(qubit_indices=measurement_qubits)
+            ps1, _ = rho._measurement_probabilites(qubit_indices=measurement_qubits)
             ps2 = np.zeros_like(ps1)
             for ensemble_p, state in zip(ensemble_ps, states):
                 ps, _, _, _ = state._measurement_probabilites(qubit_indices=measurement_qubits)
                 ps2 += ensemble_p * ps
 
             assert_allclose(ps1, ps2)
+
+    def test_measurements_dont_change(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            num_states = np.random.randint(1, 8)
+            d = np.random.randint(2, 8)
+            states = [random_state(d) for i in range(num_states)]
+            ensemble_ps = dirichlet(np.ones(num_states)).rvs()[0]
+            rho = qc.DensityOperator.from_ensemble(states, ensemble_ps)
+
+            measurement_d = np.random.randint(1, d+1)
+            qubit_indices = np.random.choice(d, measurement_d, replace=False)
+
+            result1 = rho.measure(qubit_indices)
+            result2 = rho.measure(qubit_indices)
+
+            self.assertEqual(result1, result2)
+
+    def test_qubit_subset_measurement(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            subsystems = []
+            ds = []
+            for i in range(3):
+                num_states = np.random.randint(1, 8)
+                d = np.random.randint(1, 3)
+                ds.append(d)
+                states = [random_state(d) for i in range(num_states)]
+                ensemble_ps = dirichlet(np.ones(num_states)).rvs()[0]
+                rho = qc.DensityOperator.from_ensemble(states, ensemble_ps)
+                subsystems.append(rho)
+
+            system = subsystems[0] * subsystems[1] * subsystems[2]
+            qubit_indices = list(range(ds[0], ds[0]+ds[1]))
+            system.measure(qubit_indices=qubit_indices, remove=True)
+            reduced_system = subsystems[0] * subsystems[2]
+
+            assert_allclose(system._t, reduced_system._t)
+
+    def test_computational_basis_state_measurement(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            d = np.random.randint(2, 8)
+            bits = np.random.randint(2, size=d)
+            bits_list = list(bits)
+            rho = qc.DensityOperator.from_ensemble([qc.bitstring(*bits_list)])
+            measurement_d = np.random.randint(1, d+1)
+            qubit_indices = np.random.choice(d, size=measurement_d, replace=False)
+
+            measured_bits = rho.measure(qubit_indices)
+
+            assert_allclose(
+                bits[qubit_indices],
+                np.array(measured_bits)
+            )
+
+    def test_positive_superposition_measurement(self):
+        state = qc.positive_superposition()
+        rho1 = qc.DensityOperator.from_ensemble([state])
+        measurement = rho1.measure()[0]
+
+        state = qc.bitstring(measurement)
+        rho2 = qc.DensityOperator.from_ensemble([state])
+
+        assert_allclose(rho1._t, rho2._t)
+
+    def test_bell_state_measurement(self):
+        state = qc.bell_state(0, 0)
+        rho1 = qc.DensityOperator.from_ensemble([state])
+        idx = np.random.randint(2)
+        m = rho1.measure(qubit_indices=[idx])[0]
+
+        state = qc.bitstring(m, m)
+        rho2 = qc.DensityOperator.from_ensemble([state])
+
+        assert_allclose(rho1._t, rho2._t)
+
+    def test_bell_state_measurement2(self):
+        state = qc.bell_state(0, 0)
+        rho1 = qc.DensityOperator.from_ensemble([state])
+        idx = np.random.randint(2)
+        m = rho1.measure(qubit_indices=[idx], remove=True)[0]
+
+        state = qc.bitstring(m)
+        rho2 = qc.DensityOperator.from_ensemble([state])
+
+        assert_allclose(rho1._t, rho2._t)
+
+    def test_state_density_operator_consistent(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            for remove in [False, True]:
+
+                d = np.random.randint(1, 8)
+                state = random_state(d)
+                rho = qc.DensityOperator.from_ensemble([state])
+
+                measure_idx = np.random.randint(d)
+                density_m = rho.measure(qubit_indices=measure_idx, remove=remove)
+
+                state_m = None
+                state1 = None
+                while state_m != density_m:
+                    state1 = copy.deepcopy(state)
+                    state_m = state1.measure(measure_idx, remove=remove)
+
+                rho2 = qc.DensityOperator.from_ensemble([state1])
+
+                assert_allclose(rho._t, rho2._t)
+
+    def test_state_density_operator_consistent2(self):
+        num_tests = 10
+
+        for test_i in range(num_tests):
+            for remove in [False, True]:
+
+                d = np.random.randint(2, 8)
+                state = random_state(d)
+                rho = qc.DensityOperator.from_ensemble([state])
+
+                measure_idx = np.random.choice(d, size=2, replace=False)
+                density_m = rho.measure(qubit_indices=measure_idx, remove=remove)
+
+                state_m = None
+                state1 = None
+                while state_m != density_m:
+                    state1 = copy.deepcopy(state)
+                    state_m = state1.measure(measure_idx, remove=remove)
+
+                rho2 = qc.DensityOperator.from_ensemble([state1])
+
+                assert_allclose(rho._t, rho2._t)
 
 
 class FastMeasurementTests(unittest.TestCase):
