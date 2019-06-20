@@ -29,6 +29,7 @@ Documentation, tutorial, and examples
 * :ref:`Operators module<operators_module>`
 * :ref:`Density operator module<density_operator_module>`
 * :ref:`Tensors module<tensors_module>`
+* :ref:`Change log<change_log>`
 
 .. * :ref:`genindex`
 

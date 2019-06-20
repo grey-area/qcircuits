@@ -776,6 +776,22 @@ the probability of that outcome, and :math:`P_m` is the projector onto
 the computational basis states corresponding to the measurement outcome,
 and :math:`\rho` is the pre-measurement state.
 
+One can take the tensor product of density operators for subsystems,
+in the same way as for states and operators, to obtain the density
+operator for the larger composite system:
+
+.. code-block:: python
+
+    >>> state1 = qc.DensityOperator.from_ensemble(list_of_states1)
+    >>> state2 = qc.DensityOperator.from_ensemble(list_of_states2)
+    >>> print(state1.rank)
+    2
+    >>> print(state2.rank)
+    4
+    >>> composite_system = state1 * state2
+    >>> print(composite_system.rank)
+    6
+
 
 Warning: The No-Cloning Theorem
 ===============================
