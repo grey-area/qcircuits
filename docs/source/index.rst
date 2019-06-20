@@ -27,7 +27,9 @@ Documentation, tutorial, and examples
 * :ref:`Examples<examples_page>`
 * :ref:`State module<state_module>`
 * :ref:`Operators module<operators_module>`
+* :ref:`Density operator module<density_operator_module>`
 * :ref:`Tensors module<tensors_module>`
+* :ref:`Change log<change_log>`
 
 .. * :ref:`genindex`
 
@@ -43,12 +45,10 @@ or from the source at `github.com/grey-area/qcircuits <https://github.com/grey-a
 
 See the :ref:`examples page<examples_page>` for more examples.
 
-Quantum teleportation example:
-
 Quantum circuit:
 
 .. image:: images/teleport.png
-    :width: 100%
+    :width: 90%
 
 Code:
 

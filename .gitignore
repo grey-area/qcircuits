@@ -3,3 +3,5 @@ QCircuits.egg-info
 MANIFEST
 dist
 docs/build
+*~
+*#

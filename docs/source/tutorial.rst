@@ -45,7 +45,7 @@ And to prepare the state :math:`|\phi⟩ = |11⟩`:
     >>> phi = qc.ones(2)  # the state |11⟩
 
 The :py:func:`.bitstring` function allows one to prepare a state in
-an arbitrary computational basis state. E.g., to prepare the state 
+an arbitrary computational basis state. E.g., to prepare the state
 :math:`|\phi⟩ = |01001⟩`:
 
 .. code-block:: python
@@ -82,7 +82,7 @@ can be prepared:
 
 The :py:func:`.positive_superposition` function may be used to prepare
 a d-qubit state in the positive equal superposition of the computational
-states. E.g., to construct the 2-qubit state 
+states. E.g., to construct the 2-qubit state
 :math:`|\phi⟩ = \big(|00⟩ + |01⟩ + |10⟩ + |11⟩ \big) / 2`:
 
 .. code-block:: python
@@ -104,7 +104,7 @@ Internally, QCircuits encodes a d-qubit state with an array of shape
 (2, 2, ..., 2), with d axes in total, representing a tensor with
 d contravariant indices. E.g., a 3-qubit state is represented by an array
 of shape (2, 2, 2), and indexing into this array with indices i, j, k
-gets the probability amplitude for the computational basis vector 
+gets the probability amplitude for the computational basis vector
 :math:`|ijk⟩`. The shape and the rank (number of axes) can be accessed
 with the :py:attr:`.State.shape` and :py:attr:`.State.rank` properties.
 
@@ -210,7 +210,7 @@ on some computational basis vectors as expected:
     1-qubit state. Tensor:
     [-0.-0.j -1.-0.j]
 
-We have seen in the above examples that operators are applied to states 
+We have seen in the above examples that operators are applied to states
 by function application, i.e., U(v), where U is an operator and v a state.
 Operator application will be described in more detail later in the tutorial.
 
@@ -247,7 +247,7 @@ question to each qubit independently. E.g., for the X gate, the returned operato
 
 By default, dimensionality of the operator and the state it is applied to
 must match. I.e., a d-qubit operator must be applied to a d-qubit state.
-Ways of applying n-qubit operators to d-qubit states where n is less than d 
+Ways of applying n-qubit operators to d-qubit states where n is less than d
 will be discussed in the sections on tensor products and operator application
 below.
 
@@ -280,7 +280,7 @@ if the first (control) qubit is in state :math:`|1⟩`.
 
 Often, we want to swap the role of the qubits, flipping the first qubit if the second
 is set, or more generally, for a d-qubit state we may want to apply the 2-qubit CNOT
-operator on any two qubits. How this is done is described in the section on 
+operator on any two qubits. How this is done is described in the section on
 operator application below.
 
 The :py:func:`.ControlledU` function takes a d-qubit operator as an argument,
@@ -301,7 +301,7 @@ the operator U is applied to the following d qubits.
 
      [[0.+0.j 0.+0.j]
       [0.+0.j 0.+0.j]]]
-    
+
     >>> print(c_H(phi1))  # the 2-qubit H operator is applied
     1-qubit state. Tensor:
     [[[0. +0.j 0. +0.j]
@@ -314,7 +314,7 @@ The :py:func:`.U_f` function takes two arguments: a function f and an integer d.
 The function f must be a boolean function of d-1 boolean arguments.
 This returns a d-qubit operator whose action is to flip the last qubit
 if the result of applying the boolean function to the first d-1 qubits is one.
-An example of its use can be found in the Deutsch-Jorza algorithm in the
+An example of its use can be found in the Deutsch-Jozsa algorithm in the
 :ref:`examples page<examples_page>`.
 
 .. TODO operator arithmetic
@@ -384,7 +384,7 @@ by providing the (2, 2, 2, 2)-shape array:
     ...                    [ 0.5, -0.5]],
     ...                   [[ 0.5,  0.5],
     ...                    [ 0.5, -0.5]]],
-    ...          
+    ...
     ...                  [[[ 0.5,  0.5],
     ...                    [ 0.5, -0.5]],
     ...                   [[-0.5, -0.5],
@@ -403,7 +403,7 @@ Hadamard gate:
      [ 0.5+0.j  0.5+0.j -0.5+0.j -0.5+0.j]
      [ 0.5+0.j -0.5+0.j -0.5+0.j  0.5+0.j]]
 
-Operators can be constructed from this matrix representation using the 
+Operators can be constructed from this matrix representation using the
 :py:meth:`.Operator.from_matrix` static method:
 
 .. code-block:: python
@@ -467,7 +467,7 @@ Tensor Products
 
 If a quantum system :math:`A` is in state :math:`|\psi⟩`, and system
 :math:`B` is in state :math:`|\phi⟩`, then the combined system
-:math:`A\otimes B` is in state :math:`|\psi⟩ \otimes |\phi⟩`, 
+:math:`A\otimes B` is in state :math:`|\psi⟩ \otimes |\phi⟩`,
 where :math:`\otimes` is the tensor product. If operator :math:`U`
 is applied to system :math:`A` and operator V applied to system :math:`B`,
 then this can be described by a single operator :math:`U\otimes V` applied
@@ -597,7 +597,7 @@ more qubits of a state with the :py:meth:`.State.measure` method,
 which returns the result of measurement.
 Post-measurement, the state collapses to the computational basis
 state corresponding to the result of the measurement of the measured
-qubits. The :py:meth:`.State.measure` method has two arguments, 
+qubits. The :py:meth:`.State.measure` method has two arguments:
 a list of indices specifying the qubits to be measured,
 and a flag specifying whether the measured qubits are to be removed from the state.
 If no indices are supplied, every qubit is measured.
@@ -651,9 +651,150 @@ in the state :math:`|0⟩` or in the state :math:`|1⟩`.
 .. TODO warning about non-unit, non-unitary
 
 
+Density Operators
+=================
+
+`Density operators <https://en.wikipedia.org/wiki/Density_matrix>`_ are a useful
+way of representing mixed states, i.e., statistical ensembles of quantum states
+that can arise when there is uncertainty about the actual quantum states that
+are being manipulated. If a system is known to be in one of a collection of
+states :math:`|\phi_i⟩`, each with probability :math:`p_i`, then the density
+operator representation of this state is :math:`\rho = \sum_i p_i |\phi_i⟩⟨\phi_i|`.
+
+The usual way to create DensityOperator objects then is to supply a list
+of :py:class:`.State` objects and a list of probabilities, matching in length,
+which must sum to one:
+
+.. code-block:: python
+
+    >>> state1 = qc.bitstring(0, 1, 0)  # the state |010⟩
+    >>> state2 = qc.bitstring(1, 0, 0)  # the state |100⟩
+    >>> mixed_state = qc.DensityOperator.from_ensemble(
+    ...     [state1, state2],
+    ...     ps=[0.3, 0.7]
+    ... )  # the statistical ensemble known to be in states |010⟩ and |100⟩
+    ...    # each with probability 1/2.
+
+The collection of states must have matching rank. I.e., one cannot form a mixture
+of a two qubit and a three qubit state. If the probability vector is omitted a
+uniform mixture is assumed.
+
+Operators can be applied to mixed states in the same way that they are
+applied to pure states:
+
+.. code-block:: python
+
+    >>> H = qc.Hadamard(d=3)  # the three-qubit Hadamard operator
+    >>> state1 = qc.bitstring(0, 1, 0)  # the state |010⟩
+    >>> state2 = qc.bitstring(1, 0, 0)  # the state |100⟩
+    >>> rho = qc.DensityOperator.from_ensemble(
+    ...     [state1, state2],
+    ...     ps=[0.3, 0.7]
+    ... )  # the statistical ensemble known to be in states |010⟩ and |100⟩
+    ...    # each with probability 1/2.
+    >>> result = H(rho)  # apply the operator to the state
+
+Under the hood, this takes the density operator :math:`\rho` to
+:math:`H \rho H^{\dagger}`, which is the resulting density operator if
+the operator :math:`H` is applied to the state whose uncertainty is
+being represented.
+
+If the operator is for a lower-dimensional space than the density operator
+represents, or if you want to permute the roles of the qubits in the
+operator application, a qubit_indices argument can be supplied as when
+applying operators to pure states:
+
+.. code-block:: python
+
+    >>> H = qc.Hadamard(d=2)  # the two-qubit Hadamard operator
+    >>> state1 = qc.bitstring(0, 1, 0)  # the state |010⟩
+    >>> state2 = qc.bitstring(1, 0, 0)  # the state |100⟩
+    >>> rho = qc.DensityOperator.from_ensemble(
+    ...     [state1, state2],
+    ...     ps=[0.3, 0.7]
+    ... )  # the statistical ensemble known to be in states |010⟩ and |100⟩
+    ...    # each with probability 1/2.
+    >>> result = H(rho, qubit_indices=[0, 2])  # apply the two-qubit operator to
+    ...                                        # qubits 0 and 2
+
+
+Measurement in the computational basis may be performed on one or
+more qubits of a mixed state with the :py:meth:`.DensityOperator.measure` method,
+which returns the result of measurement.
+
+.. code-block:: python
+
+    >>> state1 = qc.zeros(1)  # the state |0⟩
+    >>> state2 = qc.ones(1)   # the state |1⟩
+    >>> mixed_state = qc.DensityOperator.from_ensemble(
+    ...     [state1, state2],
+    ...     ps=[0.5, 0.5]
+    ... )  # the statistical ensemble known to be in states |0⟩ and |1⟩
+    ...    # each with probability 1/2.
+    >>> mixed_state.measure()  # measure the qubit
+    (0,)
+
+The :py:meth:`.DensityOperator.measure` method has two arguments:
+a list of indices specifying the qubits to be measured,
+and a flag specifying whether the measured qubits are to be removed from the state.
+If no indices are supplied, every qubit is measured.
+E.g., in the following example, the system is known to be in state
+:math:`|00⟩` or state :math:`|11⟩` with equal probability. We measure
+the first qubit, opting to then remove the collapsed qubit from the state,
+and we measure :math:`0`.
+Post-measurement, the density operator represents the state :math:`|0⟩`
+(for the second qubit) with certainty.
+
+.. code-block:: python
+
+    >>> state1 = qc.bitstring(0, 0)  # the state |00⟩
+    >>> state2 = qc.bitstring(1, 1)  # the state |11⟩
+    >>> mixed_state = qc.DensityOperator.from_ensemble(
+    ...     [state1, state2],
+    ...     ps=[0.5, 0.5]
+    ... )  # the statistical ensemble known to be in states |00⟩ and |11⟩
+    ...    # each with probability 1/2.
+    >>> mixed_state.measure(qubit_indices=[0], remove=True)  # measure the state, and remove the
+    ...                                                      # qubit from the density operator
+    (0,)
+    >>> print(mixed_state)
+    ... Density operator for 1-qubit state space. Tensor:
+        [[1.+0.j 0.+0.j]
+         [0.+0.j 0.+0.j]]
+
+Generally, the post-measurement state is as follows.
+Each of the ensemble of states the density operator represents
+collapses to the computational basis state corresponding to the result
+of the measurement of the measured qubits.
+The mixture probabilities,
+representing our state of belief of the current state of the system,
+are updated using Bayes rule.
+Equivalently, the post-measurement density
+operator is :math:`P_m \rho P_m^{\dagger} / p(m)`, where :math:`m` is the
+outcome of measurement, :math:`p(m)` is
+the probability of that outcome, and :math:`P_m` is the projector onto
+the computational basis states corresponding to the measurement outcome,
+and :math:`\rho` is the pre-measurement state.
+
+One can take the tensor product of density operators for subsystems,
+in the same way as for states and operators, to obtain the density
+operator for the larger composite system:
+
+.. code-block:: python
+
+    >>> state1 = qc.DensityOperator.from_ensemble(list_of_states1)
+    >>> state2 = qc.DensityOperator.from_ensemble(list_of_states2)
+    >>> print(state1.rank)
+    2
+    >>> print(state2.rank)
+    4
+    >>> composite_system = state1 * state2
+    >>> print(composite_system.rank)
+    6
+
 
 Warning: The No-Cloning Theorem
-===========================
+===============================
 
 The `no cloning theorem <https://en.wikipedia.org/wiki/No-cloning_theorem>`_ says that, in general, given a quantum system in a given state,
 one cannot clone the state such that another system is in the same state without
@@ -695,7 +836,7 @@ Entanglement / Schmidt Number
 A state :math:`|\phi⟩` of a composite quantum system
 :math:`A\otimes B` has a Schmidt decomposition:
 :math:`|\phi⟩ = \sum_i \lambda_i |i_A⟩|i_B⟩`, where
-the *Schmidt coefficients* :math:`\lambda_i` are non-negative and the 
+the *Schmidt coefficients* :math:`\lambda_i` are non-negative and the
 :math:`|i_A⟩` and :math:`|i_B⟩` are orthonormal bases for systems
 :math:`A` and :math:`B`.
 The number of non-zero Schmidt coefficients is a measure of the entanglement

@@ -3,7 +3,7 @@ import numpy as np
 import random
 
 
-# Deutsch-Jorza Algorithhm:
+# Deutsch-Jozsa Algorithhm:
 # We are presented with a Boolean function that is either constant or
 # balanced (i.e., 0 for half of inputs, 1 for the other half).
 # We make use of interference to determine whether the function is constant
@@ -29,7 +29,7 @@ def construct_problem(d=1, problem_type='constant'):
     return f
 
 
-def deutsch_jorza_algorithm(d, f):
+def deutsch_jozsa_algorithm(d, f):
     # The operators we will need
     U_f = qc.U_f(f, d=d+1)
     H_d = qc.Hadamard(d)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     problem_type = random.choice(['constant', 'balanced'])
 
     f = construct_problem(d, problem_type)
-    measurements = deutsch_jorza_algorithm(d, f)
+    measurements = deutsch_jozsa_algorithm(d, f)
 
     print('Problem type: {}'.format(problem_type))
     print('Measurement: {}'.format(measurements))

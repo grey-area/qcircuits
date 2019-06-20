@@ -1,7 +1,10 @@
 """
-The state module contains the State class, instances of which represent quantum states of multi-qubit systems, and factory functions for creating specific quantum states.
+The state module contains the State class, instances of which represent
+quantum states of multi-qubit systems, and factory functions for creating
+specific quantum states.
 
-Each of the factory functions (but not the State class) is aliased at the top-level module, so that, for example, one can call ``qcircuits.zeros()``
+The State class and each of the factory functions used to create states are aliased
+at the top-level module, so that, for example, one can call ``qcircuits.zeros()``
 instead of ``qcircuits.state.zeros()``.
 """
 
@@ -9,7 +12,6 @@ instead of ``qcircuits.state.zeros()``.
 import numpy as np
 
 from qcircuits.tensors import Tensor
-import qcircuits.operators as operators
 
 
 class State(Tensor):
@@ -117,7 +119,9 @@ class State(Tensor):
     def permute_qubits(self, axes, inverse=False):
         """
         Permute the qubits in the state. Equivalent to crossing
-        wires in a circuit.
+        wires in a circuit. This method modifies the state in-place,
+        but also returns the resulting state to allow chaining of
+        operations.
 
         Parameters
         ----------
@@ -125,14 +129,22 @@ class State(Tensor):
             Permute the qubits according to the values given.
         inverse : bool
             If true, perform the inverse permutation of the qubits.
+
+        Returns
+        -------
+        State
+            The resulting state.
         """
 
         self._t = self._permuted_tensor(axes, inverse=inverse)
+        return self
 
     def swap_qubits(self, axis1, axis2):
         """
         Swap two qubits in the state. Equivalent to crossing
-        wires in a circuit.
+        wires in a circuit. This method modifies the state in-place,
+        but also returns the resulting state to allow chaining of
+        operations.
 
         Parameters
         ----------
@@ -140,9 +152,15 @@ class State(Tensor):
             First axis.
         axis2 : int
             Second axis.
+
+        Returns
+        -------
+        State
+            The resulting state.
         """
 
         self._t = np.swapaxes(self._t, axis1, axis2)
+        return self
 
     def __add__(self, arg):
         return State(self._t + arg._t)
@@ -241,14 +259,21 @@ class State(Tensor):
         U, D, V = np.linalg.svd(M)
         return np.sum(D > 1e-10)
 
+    def _measurement_probabilites(self, qubit_indices):
+        num_outcomes = 2**len(qubit_indices)
+        unmeasured_indices = list(set(range(self.rank)) - set(qubit_indices))
+        permute = qubit_indices + unmeasured_indices
+        amplitudes = np.transpose(self._t, permute)
+        ps = np.reshape(np.real(amplitudes * np.conj(amplitudes)), (num_outcomes, -1)).sum(axis=1)
+
+        return ps, num_outcomes, amplitudes, permute
 
     def measure(self, qubit_indices=None, remove=False):
         """
         Measure the state with respect to the computational bases
         of the qubits indicated by `qubit_indices`.
-        Unlike operator application, with returns the resulting state,
-        measuring a state will modify the state itself. If no indices
-        are indicated, the whole state is measured.
+        Measuring a state will modify the state in-place.
+        If no indices are indicated, the whole state is measured.
 
         Parameters
         ----------
@@ -286,6 +311,9 @@ class State(Tensor):
 
         qubit_indices = list(qubit_indices)
 
+        if qubit_indices == []:
+            raise ValueError('Must measure at least one qubit.')
+
         if min(qubit_indices) < 0 or max(qubit_indices) >= self.rank:
             raise ValueError('Trying to measure qubit index i not 0<=i<d, '
                              'where d is the rank of the state vector.')
@@ -293,12 +321,8 @@ class State(Tensor):
         if len(qubit_indices) != len(set(qubit_indices)):
             raise ValueError('Qubit indices list contains repeated elements.')
 
-        # The probability of each outcome for the qubits being measured
-        num_outcomes = 2**len(qubit_indices)
-        unmeasured_indices = list(set(range(self.rank)) - set(qubit_indices))
-        permute = qubit_indices + unmeasured_indices
-        amplitudes = np.transpose(self._t, permute)
-        ps = np.reshape(np.real(amplitudes * np.conj(amplitudes)), (num_outcomes, -1)).sum(axis=1)
+        # Compute probability of each outcome for the qubits being measured
+        ps, num_outcomes, amplitudes, permute = self._measurement_probabilites(qubit_indices)
 
         # The binary representation of the measured state
         outcome = np.random.choice(num_outcomes, p=ps)
@@ -328,6 +352,8 @@ class State(Tensor):
 
 
 # Factory functions for building States
+from qcircuits.operators import Hadamard, CNOT
+
 
 def qubit(*, alpha=None, beta=None,
           theta=None, phi=None,
@@ -516,7 +542,7 @@ def positive_superposition(d=1):
     if d < 1:
         raise ValueError('Rank must be at least 1.')
 
-    H = operators.Hadamard(d)
+    H = Hadamard(d)
     x = zeros(d)
     return H(x)
 
@@ -551,6 +577,6 @@ def bell_state(a=0, b=0):
         raise ValueError('Bell state arguments are bits, and must be 0 or 1.')
 
     phi = bitstring(a, b)
-    phi = operators.Hadamard()(phi, qubit_indices=[0])
+    phi = Hadamard()(phi, qubit_indices=[0])
 
-    return operators.CNOT()(phi)
+    return CNOT()(phi)

@@ -55,15 +55,15 @@ Deutsch's Algorithm
 
 .. literalinclude:: ../../examples/deutsch_algorithm.py
 
-The Deutsch-Jorza Algorithm
+The Deutsch-Jozsa Algorithm
 ===========================
 
-.. image:: images/deutsch_jorza.png
+.. image:: images/deutsch_jozsa.png
     :width: 100%
 
 **Code**:
 
-.. literalinclude:: ../../examples/deutsch_jorza_algorithm.py
+.. literalinclude:: ../../examples/deutsch_jozsa_algorithm.py
 
 Superdense Coding
 =================
