@@ -1,3 +1,16 @@
+"""
+The density_operator module contains the DensityOperator class,
+instances of which represent mixed states of multi-qubit systems,
+and functionality for creating density operators from mixtures of
+pure :py:class:`.State` objects.
+
+The DensityOperator class is
+aliased at the top-level module, so that one can call
+``qcircuits.DensityOperator()`` instead of
+``qcircuits.state.DensityOperator()``.
+"""
+
+
 import numpy as np
 
 from qcircuits.operators import OperatorBase
@@ -123,7 +136,7 @@ class DensityOperator(OperatorBase):
             the whole state is measured.
         remove : bool
             Indicates whether the measured qubits should be removed from
-            the state vector.
+            the density operator.
 
         Returns
         -------

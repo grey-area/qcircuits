@@ -6,9 +6,9 @@ Full documentation at `www.awebb.info/qcircuits/index.html <http://www.awebb.inf
 
 .. inclusion-marker0-do-not-remove
 
-QCircuits is a Python package for simulating quantum computers based on the
+QCircuits is a Python package for the simulation and study of quantum computers based on the
 `quantum circuit model <https://en.wikipedia.org/wiki/Quantum_circuit>`_.
-It has been designed to have a simple, lightweight interface and be
+It has been designed to have a simple, lightweight interface and to be
 easy to use, particularly for those new to quantum computing.
 
 

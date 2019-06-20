@@ -1,7 +1,11 @@
 """
 The operators module contains the Operator class, instances of which
-represent Operators on vector spaces for multi-qubit systems, and
+represent unitary operators on vector spaces for multi-qubit systems, and
 factory functions for creating specific operators.
+
+The Operator class inherits from the OperatorBase class, which contains
+functionality common to unitary operators and the
+:py:class:`.DensityOperator` class.
 
 The Operator class and the factory functions used to create operators are
 aliased at the top-level module, so that, for example, one can call

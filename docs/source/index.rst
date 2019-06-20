@@ -27,6 +27,7 @@ Documentation, tutorial, and examples
 * :ref:`Examples<examples_page>`
 * :ref:`State module<state_module>`
 * :ref:`Operators module<operators_module>`
+* :ref:`Density operator module<density_operator_module>`
 * :ref:`Tensors module<tensors_module>`
 
 .. * :ref:`genindex`

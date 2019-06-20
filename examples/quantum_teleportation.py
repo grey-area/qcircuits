@@ -21,23 +21,23 @@ def quantum_teleportation(alice_state):
     # The prepared, shared Bell state
     bell = qc.bell_state(0, 0)
     # The whole state vector
-    phi = alice_state * bell
+    state = alice_state * bell
 
     # Apply CNOT and Hadamard gate
-    phi = CNOT(phi, qubit_indices=[0, 1])
-    phi = H(phi, qubit_indices=[0])
+    state = CNOT(state, qubit_indices=[0, 1])
+    state = H(state, qubit_indices=[0])
 
     # Measure the first two bits
     # The only uncollapsed part of the state vector is Bob's
-    M1, M2 = phi.measure(qubit_indices=[0, 1], remove=True)
+    M1, M2 = state.measure(qubit_indices=[0, 1], remove=True)
 
     # Apply X and/or Z gates to third qubit depending on measurements
     if M2:
-        phi = X(phi)
+        state = X(state)
     if M1:
-        phi = Z(phi)
+        state = Z(state)
 
-    return phi
+    return state
 
 
 if __name__ == '__main__':

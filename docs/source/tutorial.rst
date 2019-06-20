@@ -597,7 +597,7 @@ more qubits of a state with the :py:meth:`.State.measure` method,
 which returns the result of measurement.
 Post-measurement, the state collapses to the computational basis
 state corresponding to the result of the measurement of the measured
-qubits. The :py:meth:`.State.measure` method has two arguments,
+qubits. The :py:meth:`.State.measure` method has two arguments:
 a list of indices specifying the qubits to be measured,
 and a flag specifying whether the measured qubits are to be removed from the state.
 If no indices are supplied, every qubit is measured.
@@ -650,6 +650,131 @@ in the state :math:`|0⟩` or in the state :math:`|1⟩`.
 
 .. TODO warning about non-unit, non-unitary
 
+
+Density Operators
+=================
+
+`Density operators <https://en.wikipedia.org/wiki/Density_matrix>`_ are a useful
+way of representing mixed states, i.e., statistical ensembles of quantum states
+that can arise when there is uncertainty about the actual quantum states that
+are being manipulated. If a system is known to be in one of a collection of
+states :math:`|\phi_i⟩`, each with probability :math:`p_i`, then the density
+operator representation of this state is :math:`\rho = \sum_i p_i |\phi_i⟩⟨\phi_i|`.
+
+The usual way to create DensityOperator objects then is to supply a list
+of :py:class:`.State` objects and a list of probabilities, matching in length,
+which must sum to one:
+
+.. code-block:: python
+
+    >>> state1 = qc.bitstring(0, 1, 0)  # the state |010⟩
+    >>> state2 = qc.bitstring(1, 0, 0)  # the state |100⟩
+    >>> mixed_state = qc.DensityOperator.from_ensemble(
+    ...     [state1, state2],
+    ...     ps=[0.3, 0.7]
+    ... )  # the statistical ensemble known to be in states |010⟩ and |100⟩
+    ...    # each with probability 1/2.
+
+The collection of states must have matching rank. I.e., one cannot form a mixture
+of a two qubit and a three qubit state. If the probability vector is omitted a
+uniform mixture is assumed.
+
+Operators can be applied to mixed states in the same way that they are
+applied to pure states:
+
+.. code-block:: python
+
+    >>> H = qc.Hadamard(d=3)  # the three-qubit Hadamard operator
+    >>> state1 = qc.bitstring(0, 1, 0)  # the state |010⟩
+    >>> state2 = qc.bitstring(1, 0, 0)  # the state |100⟩
+    >>> rho = qc.DensityOperator.from_ensemble(
+    ...     [state1, state2],
+    ...     ps=[0.3, 0.7]
+    ... )  # the statistical ensemble known to be in states |010⟩ and |100⟩
+    ...    # each with probability 1/2.
+    >>> result = H(rho)  # apply the operator to the state
+
+Under the hood, this takes the density operator :math:`\rho` to
+:math:`H \rho H^{\dagger}`, which is the resulting density operator if
+the operator :math:`H` is applied to the state whose uncertainty is
+being represented.
+
+If the operator is for a lower-dimensional space than the density operator
+represents, or if you want to permute the roles of the qubits in the
+operator application, a qubit_indices argument can be supplied as when
+applying operators to pure states:
+
+.. code-block:: python
+
+    >>> H = qc.Hadamard(d=2)  # the two-qubit Hadamard operator
+    >>> state1 = qc.bitstring(0, 1, 0)  # the state |010⟩
+    >>> state2 = qc.bitstring(1, 0, 0)  # the state |100⟩
+    >>> rho = qc.DensityOperator.from_ensemble(
+    ...     [state1, state2],
+    ...     ps=[0.3, 0.7]
+    ... )  # the statistical ensemble known to be in states |010⟩ and |100⟩
+    ...    # each with probability 1/2.
+    >>> result = H(rho, qubit_indices=[0, 2])  # apply the two-qubit operator to
+    ...                                        # qubits 0 and 2
+
+
+Measurement in the computational basis may be performed on one or
+more qubits of a mixed state with the :py:meth:`.DensityOperator.measure` method,
+which returns the result of measurement.
+
+.. code-block:: python
+
+    >>> state1 = qc.zeros(1)  # the state |0⟩
+    >>> state2 = qc.ones(1)   # the state |1⟩
+    >>> mixed_state = qc.DensityOperator.from_ensemble(
+    ...     [state1, state2],
+    ...     ps=[0.5, 0.5]
+    ... )  # the statistical ensemble known to be in states |0⟩ and |1⟩
+    ...    # each with probability 1/2.
+    >>> mixed_state.measure()  # measure the qubit
+    (0,)
+
+The :py:meth:`.DensityOperator.measure` method has two arguments:
+a list of indices specifying the qubits to be measured,
+and a flag specifying whether the measured qubits are to be removed from the state.
+If no indices are supplied, every qubit is measured.
+E.g., in the following example, the system is known to be in state
+:math:`|00⟩` or state :math:`|11⟩` with equal probability. We measure
+the first qubit, opting to then remove the collapsed qubit from the state,
+and we measure :math:`0`.
+Post-measurement, the density operator represents the state :math:`|0⟩`
+(for the second qubit) with certainty.
+
+.. code-block:: python
+
+    >>> state1 = qc.bitstring(0, 0)  # the state |00⟩
+    >>> state2 = qc.bitstring(1, 1)  # the state |11⟩
+    >>> mixed_state = qc.DensityOperator.from_ensemble(
+    ...     [state1, state2],
+    ...     ps=[0.5, 0.5]
+    ... )  # the statistical ensemble known to be in states |00⟩ and |11⟩
+    ...    # each with probability 1/2.
+    >>> mixed_state.measure(qubit_indices=[0], remove=True)  # measure the state, and remove the
+    ...                                                      # qubit from the density operator
+    (0,)
+    >>> print(mixed_state)
+    ... Density operator for 1-qubit state space. Tensor:
+        [[1.+0.j 0.+0.j]
+         [0.+0.j 0.+0.j]]
+
+Generally, the post-measurement state is as follows.
+Each of the ensemble of states the density operator represents
+collapses to the computational basis state corresponding to the result
+of the measurement of the measured qubits.
+The mixture probabilities,
+representing our state of belief of the current state of the system,
+are updated using Bayes rule.
+Equivalently, the post-measurement density
+operator is :math:`P_m \rho P_m^{\dagger} / p(m)`, where :math:`m` is the
+outcome of measurement, :math:`p(m)` is
+the probability of that outcome, and :math:`P_m` is the projector onto
+the computational basis states corresponding to the measurement outcome,
+and :math:`\rho` is the pre-measurement state.
 
 
 Warning: The No-Cloning Theorem

@@ -1,5 +1,7 @@
 """
-The state module contains the State class, instances of which represent quantum states of multi-qubit systems, and factory functions for creating specific quantum states.
+The state module contains the State class, instances of which represent
+quantum states of multi-qubit systems, and factory functions for creating
+specific quantum states.
 
 The State class and each of the factory functions used to create states are aliased
 at the top-level module, so that, for example, one can call ``qcircuits.zeros()``
