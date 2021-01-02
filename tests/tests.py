@@ -1390,6 +1390,37 @@ class ReducedDensityAndPurificationTests(unittest.TestCase):
 
             assert_allclose(ps1, ps2)
 
+    def test_measurement_probability_compatability6(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 6)
+            state = random_state(d)
+            rho = state.density_operator()
+
+            ps1 = state.probabilities
+            ps2 = rho.probabilities
+
+            assert_allclose(ps1, ps2)
+
+    def test_measurement_probability_compatability7(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 6)
+            d1 = np.random.randint(1, d + 1)
+            M = np.random.randint(2, 10)
+            qubit_indices = list(np.random.choice(d, size=d1, replace=False))
+
+            rho = random_density_operator(d, M)
+            reduced_rho = rho.reduced_density_operator(qubit_indices)
+
+            ps1 = reduced_rho.probabilities.reshape(2**d1)
+            ps2 = rho._measurement_probabilities(qubit_indices)[0]
+
+            assert_allclose(ps1, ps2)
+
+
     def test_purifying_pure_state(self):
         num_tests = 10
 

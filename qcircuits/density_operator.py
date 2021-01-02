@@ -43,6 +43,24 @@ class DensityOperator(OperatorBase):
         s += super().__str__()
         return s
 
+    @property
+    def probabilities(self):
+        """
+        Get the probability of observing each computational basis
+        vector upon making a measurement.
+
+        Returns
+        -------
+        numpy float64 multidimensional array
+            The probability associated with each computational basis
+            vector.
+        """
+
+        probs = np.real(np.diag(self.to_matrix())).reshape([2] * (self.rank // 2))
+        assert abs(np.sum(probs) - 1.0) < 1e-4, ('State probabilities'
+                                                 'do not sum to 1.')
+        return probs
+
     @staticmethod
     def from_ensemble(states, ps=None):
         """
