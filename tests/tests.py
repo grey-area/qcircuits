@@ -50,6 +50,12 @@ def random_state(d):
     return qc.state.State(amplitudes)
 
 
+def random_density_operator(d, M):
+    states = [random_unitary_operator(d)(qc.zeros(d)) for _ in range(M)]
+    ps = dirichlet(np.ones(M)).rvs()[0]
+    return qc.DensityOperator.from_ensemble(states, ps)
+
+
 def random_boolean_function(d):
     ans = np.random.choice([0, 1], 2**d)
 
@@ -921,6 +927,20 @@ class SchmidtTests(unittest.TestCase):
 
 class DensityOperatorTests(unittest.TestCase):
 
+    def test_pure_construction_comparison(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 6)
+            state = random_state(d)
+
+            rho1 = state.density_operator()
+            rho2 = qc.DensityOperator.from_ensemble([state], [1.])
+            rho3 = state.reduced_density_operator(qubit_indices=list(range(d)))
+
+            assert_allclose(rho1._t, rho2._t)
+            assert_allclose(rho1._t, rho3._t)
+
     def test_outer_product(self):
         num_tests = 10
 
@@ -1217,6 +1237,171 @@ class DensityOperatorTests(unittest.TestCase):
                 )
 
                 assert_allclose(rho._t, rho2._t)
+
+
+class ReducedDensityAndPurificationTests(unittest.TestCase):
+
+    def test_tracing_out_product_state(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d1 = np.random.randint(1, 4)
+            d2 = np.random.randint(1, 4)
+            d3 = np.random.randint(1, 4)
+            M1 = np.random.randint(2, 10)
+            M2 = np.random.randint(2, 10)
+            M3 = np.random.randint(2, 10)
+
+            rho1 = random_density_operator(d1, M1)
+            rho2 = random_density_operator(d2, M2)
+            rho3 = random_density_operator(d3, M3)
+
+            rho_combined = rho1 * rho2 * rho3
+            rho_reduced1 = rho_combined.reduced_density_operator(list(range(d1)))
+            rho_reduced2 = rho_combined.reduced_density_operator(list(range(d1, d1 + d2)))
+            rho_reduced3 = rho_combined.reduced_density_operator(list(range(d1 + d2, d1 + d2 + d3)))
+
+            assert_allclose(rho1._t, rho_reduced1._t)
+            assert_allclose(rho2._t, rho_reduced2._t)
+            assert_allclose(rho3._t, rho_reduced3._t)
+
+    def test_tracing_out_product_state2(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d1 = np.random.randint(1, 4)
+            d2 = np.random.randint(1, 4)
+            d3 = np.random.randint(1, 4)
+
+            state1 = random_state(d1)
+            state2 = random_state(d2)
+            state3 = random_state(d3)
+
+            rho1 = state1.reduced_density_operator(list(range(d1)))
+            rho2 = state2.reduced_density_operator(list(range(d2)))
+            rho3 = state3.reduced_density_operator(list(range(d3)))
+
+            state_combined = state1 * state2 * state3
+
+            rho_reduced1 = state_combined.reduced_density_operator(list(range(d1)))
+            rho_reduced2 = state_combined.reduced_density_operator(list(range(d1, d1 + d2)))
+            rho_reduced3 = state_combined.reduced_density_operator(list(range(d1 + d2, d1 + d2 + d3)))
+
+            assert_allclose(rho1._t, rho_reduced1._t)
+            assert_allclose(rho2._t, rho_reduced2._t)
+            assert_allclose(rho3._t, rho_reduced3._t)
+
+    def test_retain_all_qubits(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 5)
+            M = np.random.randint(2, 10)
+            rho = random_density_operator(d, M)
+            rho2 = rho.reduced_density_operator(list(range(d)))
+            assert_allclose(rho._t, rho2._t)
+
+    def test_purify_then_trace_out(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 5)
+            M = np.random.randint(2, 10)
+
+            rho = random_density_operator(d, M)
+            pure_state = rho.purify()
+            rho2 = pure_state.reduced_density_operator(list(range(d)))
+
+            assert_allclose(rho._t, rho2._t)
+
+    def test_measurement_probability_compatability1(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 6)
+            state = random_state(d)
+            rho = qc.DensityOperator.from_ensemble([state], [1.])
+
+            ps1 = state._measurement_probabilities(qubit_indices=list(range(d)))[0]
+            ps2 = rho._measurement_probabilities(qubit_indices=list(range(d)))[0]
+
+            assert_allclose(ps1, ps2)
+
+    def test_measurement_probability_compatability2(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 6)
+            d1 = np.random.randint(1, d + 1)
+            qubit_indices = list(np.random.choice(d, size=d1, replace=False))
+
+            state = random_state(d)
+            reduced_rho = state.reduced_density_operator(qubit_indices)
+
+            ps1 = state._measurement_probabilities(qubit_indices)[0]
+            ps2 = reduced_rho._measurement_probabilities(qubit_indices=list(range(d1)))[0]
+
+            assert_allclose(ps1, ps2)
+
+    def test_measurement_probability_compatability3(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 6)
+            M = np.random.randint(2, 10)
+            d1 = np.random.randint(1, d + 1)
+            qubit_indices = list(np.random.choice(d, size=d1, replace=False))
+
+            rho = random_density_operator(d, M)
+            reduced_rho = rho.reduced_density_operator(qubit_indices)
+
+            ps1 = rho._measurement_probabilities(qubit_indices)[0]
+            ps2 = reduced_rho._measurement_probabilities(qubit_indices=list(range(d1)))[0]
+
+            assert_allclose(ps1, ps2)
+
+    def test_measurement_probability_compatability4(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 6)
+            M = np.random.randint(2, 10)
+
+            rho = random_density_operator(d, M)
+            purified_state = rho.purify()
+
+            ps1 = rho._measurement_probabilities(qubit_indices=list(range(d)))[0]
+            ps2 = purified_state._measurement_probabilities(qubit_indices=list(range(d)))[0]
+
+            assert_allclose(ps1, ps2)
+
+    def test_measurement_probability_compatability5(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 6)
+            pure_state = random_unitary_operator(d)(qc.zeros(d))
+
+            rho = pure_state.density_operator()
+            purified_state = rho.purify()
+
+            ps1 = pure_state._measurement_probabilities(qubit_indices=list(range(d)))[0]
+            ps2 = purified_state._measurement_probabilities(qubit_indices=list(range(d)))[0]
+
+            assert_allclose(ps1, ps2)
+
+    def test_purifying_pure_state(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 6)
+            state = random_unitary_operator(d)(qc.zeros(d))
+            rho = qc.DensityOperator.from_ensemble([state], [1.])
+
+            purified_state = rho.purify()
+            reduced_rho = purified_state.reduced_density_operator(qubit_indices=list(range(d)))
+
+            assert_allclose(rho._t, reduced_rho._t)
 
 
 class FastMeasurementTests(unittest.TestCase):
