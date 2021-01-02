@@ -268,6 +268,28 @@ class State(Tensor):
 
         return ps, num_outcomes, amplitudes, permute
 
+    def reduced_density_operator(self, qubit_indices):
+        """
+        Compute the reduced density operator of the given qubits by tracing out
+        the qubits not given.
+
+        Parameters
+        ----------
+        qubit_indices : iterable
+            Indices indicating the qubit(s) that
+            we compute the reduced density operator of.
+
+        Returns
+        -------
+        DensityOperator
+            The reduced density operator of the sub-system.
+        """
+
+        from qcircuits.density_operator import DensityOperator
+
+        # TODO Compute without first computing the full density operator?
+        return DensityOperator.from_ensemble([self], [1.]).reduced_density_operator(qubit_indices)
+
     def measure(self, qubit_indices=None, remove=False):
         """
         Measure the state with respect to the computational bases
