@@ -1420,6 +1420,28 @@ class ReducedDensityAndPurificationTests(unittest.TestCase):
 
             assert_allclose(ps1, ps2)
 
+    def test_compare_reduction_methods(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(2, 7)
+            d1 = np.random.randint(1, d + 1)
+            M = np.random.randint(2, 10)
+            retain_indices = list(np.random.choice(d, size=d1, replace=False))
+
+            rho = random_density_operator(d, M)
+
+            t1 = rho._reduced_tensor(retain_indices)
+
+            # Old method
+            traced_indices = list(
+                set(range(rho.rank // 2)) - set(retain_indices)
+            )
+            t2 = rho._permuted_tensor(traced_indices + retain_indices)
+            for _ in range(len(traced_indices)):
+                t2 = np.sum(t2[[0, 1], [0, 1], ...], axis=0)
+
+            assert_allclose(t1, t2)
 
     def test_purifying_pure_state(self):
         num_tests = 10

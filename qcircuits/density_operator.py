@@ -14,6 +14,7 @@ aliased at the top-level module, so that one can call
 import numpy as np
 
 from qcircuits.operators import OperatorBase
+from itertools import chain
 
 
 class DensityOperator(OperatorBase):
@@ -129,12 +130,12 @@ class DensityOperator(OperatorBase):
             set(range(self.rank // 2)) - set(retain_indices)
         )
         t = self._permuted_tensor(traced_indices + retain_indices)
-
-        # Trace out
-        # TODO do this in a single operation
-        for _ in range(len(traced_indices)):
-            t = np.sum(t[[0, 1], [0, 1], ...], axis=0)
-        return t
+        d1 = len(traced_indices)
+        d2 = len(retain_indices)
+        D1 = 2**d1
+        idx = list(chain(range(0, 2 * d1, 2), range(1, 2 * d1, 2), range(2 * d1, self.rank)))
+        t = np.transpose(t, idx).reshape([D1] * 2 + [2] * 2 * d2)
+        return t[range(D1), range(D1), ...].sum(axis=0)
 
     def _measurement_probabilities(self, qubit_indices):
         unmeasured_indices = list(
