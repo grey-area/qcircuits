@@ -105,7 +105,7 @@ class DensityOperator(OperatorBase):
 
         return result.transpose(permutation)
 
-    def _measurement_probabilites(self, qubit_indices):
+    def _measurement_probabilities(self, qubit_indices):
         # Put non-measured qubits up front
         unmeasured_indices = list(
             set(range(self.rank // 2)) - set(qubit_indices)
@@ -119,6 +119,26 @@ class DensityOperator(OperatorBase):
 
         ps = np.real(np.diag(OperatorBase._tensor_to_matrix(t)))
         return ps, unmeasured_indices
+
+    def purify(self):
+        """
+        If this is a density operator for a :math:`d` qubit system, produce
+        a pure state for a :math:`2d` qubit system with the same measurement
+        probabilities for the first :math:`d` qubits, and whose reduced density
+        operator for the first :math:`d` qubits is equal to the original
+        density operator.
+
+        Returns
+        -------
+        State
+            A `2d` qubit pure state.
+        """
+
+        from qcircuits.state import State
+
+        eigvals, eigvecs = np.linalg.eig(self.to_matrix())
+        pure_column = (np.sqrt(np.expand_dims(eigvals, 0)) * eigvecs).flatten()
+        return State.from_column_vector(pure_column)
 
     def measure(self, qubit_indices=None, remove=False):
         """
@@ -175,7 +195,7 @@ class DensityOperator(OperatorBase):
             raise ValueError('Qubit indices list contains repeated elements.')
 
         # Get measurement outcome probabilities
-        ps, unmeasured_indices = self._measurement_probabilites(qubit_indices)
+        ps, unmeasured_indices = self._measurement_probabilities(qubit_indices)
 
         num_outcomes = 2**len(qubit_indices)
         outcome = np.random.choice(num_outcomes, p=ps)

@@ -983,7 +983,7 @@ class DensityOperatorTests(unittest.TestCase):
             np.random.shuffle(permutation)
             states = [random_state(d) for i in range(num_states)]
             ps = dirichlet(np.ones(num_states)).rvs()[0]
-            
+
             rho1 = qc.DensityOperator.from_ensemble(states, ps)
             rho1.permute_qubits(permutation)
 
@@ -1002,7 +1002,7 @@ class DensityOperatorTests(unittest.TestCase):
             idx1, idx2 = np.random.choice(d, size=2, replace=False)
             states = [random_state(d) for i in range(num_states)]
             ps = dirichlet(np.ones(num_states)).rvs()[0]
-            
+
             rho1 = qc.DensityOperator.from_ensemble(states, ps)
             rho1.swap_qubits(idx1, idx2)
 
@@ -1025,10 +1025,10 @@ class DensityOperatorTests(unittest.TestCase):
             measurement_d = np.random.randint(1, d + 1)
             measurement_qubits = list(np.random.choice(d, size=measurement_d, replace=False))
 
-            ps1, _ = rho._measurement_probabilites(qubit_indices=measurement_qubits)
+            ps1, _ = rho._measurement_probabilities(qubit_indices=measurement_qubits)
             ps2 = np.zeros_like(ps1)
             for ensemble_p, state in zip(ensemble_ps, states):
-                ps, _, _, _ = state._measurement_probabilites(qubit_indices=measurement_qubits)
+                ps, _, _, _ = state._measurement_probabilities(qubit_indices=measurement_qubits)
                 ps2 += ensemble_p * ps
 
             assert_allclose(ps1, ps2)
@@ -1195,7 +1195,7 @@ class DensityOperatorTests(unittest.TestCase):
 
                 p_m_given_i = []
                 for state in states:
-                    ps, _, _, _ = state._measurement_probabilites(measure_idx)
+                    ps, _, _, _ = state._measurement_probabilities(measure_idx)
                     p_m_given_i.append(ps[outcome])
                 p_m_given_i = np.array(p_m_given_i)
 
