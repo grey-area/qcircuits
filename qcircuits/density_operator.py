@@ -105,18 +105,25 @@ class DensityOperator(OperatorBase):
 
         return result.transpose(permutation)
 
+    def _reduced_tensor(self, retain_indices):
+        # Put traced out qubits up front
+        traced_indices = list(
+            set(range(self.rank // 2)) - set(retain_indices)
+        )
+        t = self._permuted_tensor(traced_indices + retain_indices)
+
+        # Trace out
+        # TODO do this in a single operation
+        for _ in range(len(traced_indices)):
+            t = np.sum(t[[0, 1], [0, 1], ...], axis=0)
+        return t
+
     def _measurement_probabilities(self, qubit_indices):
-        # Put non-measured qubits up front
         unmeasured_indices = list(
             set(range(self.rank // 2)) - set(qubit_indices)
         )
-        t = self._permuted_tensor(unmeasured_indices + qubit_indices)
 
-        # Trace out unmeasured bits
-        # TODO do this in a single operation
-        for _ in range(len(unmeasured_indices)):
-            t = np.sum(t[[0, 1], [0, 1], ...], axis=0)
-
+        t = self._reduced_tensor(qubit_indices)
         ps = np.real(np.diag(OperatorBase._tensor_to_matrix(t)))
         return ps, unmeasured_indices
 
@@ -139,6 +146,39 @@ class DensityOperator(OperatorBase):
         eigvals, eigvecs = np.linalg.eig(self.to_matrix())
         pure_column = (np.sqrt(np.expand_dims(eigvals, 0)) * eigvecs).flatten()
         return State.from_column_vector(pure_column)
+
+    def reduced_density_operator(self, qubit_indices):
+        """
+        Compute the reduced density operator of the given qubits by tracing out
+        the qubits not given.
+
+        Parameters
+        ----------
+        qubit_indices : iterable
+            Indices indicating the qubit(s) that
+            we compute the reduced density operator of.
+
+        Returns
+        -------
+        DensityOperator
+            The reduced density operator of the sub-system.
+        """
+
+        if isinstance(qubit_indices, int):
+            qubit_indices = [qubit_indices]
+        qubit_indices = list(qubit_indices)
+
+        if qubit_indices == []:
+            raise ValueError('Must retain at least one qubit.')
+
+        if min(qubit_indices) < 0 or max(qubit_indices) >= self.rank // 2:
+            raise ValueError('Trying to measure qubit index i not 0<=i<d, '
+                             'where d is the rank of the state vector.')
+
+        if len(qubit_indices) != len(set(qubit_indices)):
+            raise ValueError('Qubit indices list contains repeated elements.')
+
+        return DensityOperator(self._reduced_tensor(qubit_indices))
 
     def measure(self, qubit_indices=None, remove=False):
         """
