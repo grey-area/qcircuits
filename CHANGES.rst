@@ -1,3 +1,13 @@
+v0.6.0, 2021/01/03
+------------------
+
+* Added purification of density operators.
+* Added reduced density operators for states and density operators.
+* Added convenience method for computing density operator from single pure state.
+* Added method for computing computational basis measurement probabilities from density operators.
+* More efficient partial trace for density operators.
+* Tests for the above.
+
 v0.5.0, 2019/06/20
 ------------------
 

@@ -224,7 +224,7 @@ class State(Tensor):
     # Todo: also return schmidt bases
     def schmidt_number(self, indices):
         """
-        For a d-qubit state (d>1) in vector space `A\otimes B`,
+        For a d-qubit state (d>1) in vector space :math:`A\otimes B`,
         get the Schmidt number, a measure of entanglement,
         for the Schmidt decomposition of that
         state for the subsystems A and B.
@@ -259,7 +259,7 @@ class State(Tensor):
         U, D, V = np.linalg.svd(M)
         return np.sum(D > 1e-10)
 
-    def _measurement_probabilites(self, qubit_indices):
+    def _measurement_probabilities(self, qubit_indices):
         num_outcomes = 2**len(qubit_indices)
         unmeasured_indices = list(set(range(self.rank)) - set(qubit_indices))
         permute = qubit_indices + unmeasured_indices
@@ -267,6 +267,42 @@ class State(Tensor):
         ps = np.reshape(np.real(amplitudes * np.conj(amplitudes)), (num_outcomes, -1)).sum(axis=1)
 
         return ps, num_outcomes, amplitudes, permute
+
+    def density_operator(self):
+        """
+        Compute the density operator for this pure state.
+
+        Returns
+        -------
+        DensityOperator
+            The density operator of this pure state.
+        """
+
+        from qcircuits.density_operator import DensityOperator
+
+        return DensityOperator.from_ensemble([self], [1.])
+
+    def reduced_density_operator(self, qubit_indices):
+        """
+        Compute the reduced density operator of the given qubits by tracing out
+        the qubits not given.
+
+        Parameters
+        ----------
+        qubit_indices : iterable
+            Indices indicating the qubit(s) that
+            we compute the reduced density operator of.
+
+        Returns
+        -------
+        DensityOperator
+            The reduced density operator of the sub-system.
+        """
+
+        from qcircuits.density_operator import DensityOperator
+
+        # TODO Compute without first computing the full density operator?
+        return self.density_operator().reduced_density_operator(qubit_indices)
 
     def measure(self, qubit_indices=None, remove=False):
         """
@@ -322,7 +358,7 @@ class State(Tensor):
             raise ValueError('Qubit indices list contains repeated elements.')
 
         # Compute probability of each outcome for the qubits being measured
-        ps, num_outcomes, amplitudes, permute = self._measurement_probabilites(qubit_indices)
+        ps, num_outcomes, amplitudes, permute = self._measurement_probabilities(qubit_indices)
 
         # The binary representation of the measured state
         outcome = np.random.choice(num_outcomes, p=ps)
