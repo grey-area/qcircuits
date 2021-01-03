@@ -524,8 +524,8 @@ As an example, working with 30-qubit states is plausible on personal hardware,
 requiring 16 GB of memory.
 Expanding an operator to a 30-qubit operator to act on this state is not plausible,
 as this would require 16 exabytes (1 million TB) of memory.
-The following section describes an alternative way to apply smaller operators to larger
-states.
+The previous section describes an alternative way to apply smaller operators to larger
+states, by specifying qubit indices.
 
 One can use power notation to take the tensor product of an operator or state
 with itself :math:`n` times, as in the following code that creates an :math:`n`-qubit
