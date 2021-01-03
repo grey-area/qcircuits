@@ -1420,6 +1420,59 @@ class ReducedDensityAndPurificationTests(unittest.TestCase):
 
             assert_allclose(ps1, ps2)
 
+    def test_measurement_probability_compatability8(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d = np.random.randint(1, 6)
+            M = np.random.randint(2, 10)
+
+            states = [random_state(d) for _ in range(M)]
+            individual_probabilities = [state.probabilities for state in states]
+            ps = np.random.dirichlet([1.] * M)
+
+            rho = qc.DensityOperator.from_ensemble(states, ps)
+
+            ensemble_ps1 = rho.probabilities
+            ensemble_ps2 = sum(p * ip for (p, ip) in zip(ps, individual_probabilities))
+
+            assert_allclose(ensemble_ps1, ensemble_ps2)
+
+    def test_reduced_density_equiv_to_forgetting(self):
+        num_tests = 10
+
+        for _ in range(num_tests):
+            d1 = np.random.randint(1, 4)
+            d2 = np.random.randint(1, 4)
+            d = d1 + d2
+            state = random_unitary_operator(d)(random_state(d))
+
+            reduced_rho1 = state.reduced_density_operator(list(range(d1, d)))
+
+            probabilities = state.probabilities.sum(axis=tuple(range(d1, d)))
+            num_distinct_outcomes = 2**d1
+            measured_outcomes = set()
+            resulting_states = []
+            probabilities_of_measurements = []
+            attempts = 0
+            while len(resulting_states) < num_distinct_outcomes and attempts < 1000000:
+                attempts += 1
+
+                state_copy = copy.deepcopy(state)
+                measurement = state_copy.measure(list(range(d1)), remove=True)
+                if measurement in measured_outcomes:
+                    continue
+
+                prob_of_measurement = probabilities[measurement]
+                measured_outcomes.add(measurement)
+                resulting_states.append(state_copy)
+                probabilities_of_measurements.append(prob_of_measurement)
+
+            reduced_rho2 = qc.DensityOperator.from_ensemble(resulting_states, probabilities_of_measurements)
+
+            self.assertAlmostEqual(sum(probabilities_of_measurements), 1.0)
+            assert_allclose(reduced_rho1._t, reduced_rho2._t)
+
     def test_compare_reduction_methods(self):
         num_tests = 10
 
@@ -1442,6 +1495,17 @@ class ReducedDensityAndPurificationTests(unittest.TestCase):
                 t2 = np.sum(t2[[0, 1], [0, 1], ...], axis=0)
 
             assert_allclose(t1, t2)
+
+    def test_bell_state_reduced_density_operators(self):
+        from itertools import product
+
+        target = np.diag(2 * [0.5 + 0.0j])
+
+        for (a, b, c) in product([0, 1], repeat=3):
+            state = qc.bell_state(a, b)
+            reduced_rho = state.reduced_density_operator(c)
+
+            assert_allclose(reduced_rho._t, target)
 
     def test_purifying_pure_state(self):
         num_tests = 10

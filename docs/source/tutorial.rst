@@ -661,7 +661,8 @@ are being manipulated. If a system is known to be in one of a collection of
 states :math:`|\phi_i⟩`, each with probability :math:`p_i`, then the density
 operator representation of this state is :math:`\rho = \sum_i p_i |\phi_i⟩⟨\phi_i|`.
 
-The usual way to create DensityOperator objects then is to supply a list
+A DensityOperator object can be created with the :py:meth:`.DensityOperator.from_ensemble`
+static method, by supplying a list
 of :py:class:`.State` objects and a list of probabilities, matching in length,
 which must sum to one:
 
@@ -678,6 +679,14 @@ which must sum to one:
 The collection of states must have matching rank. I.e., one cannot form a mixture
 of a two qubit and a three qubit state. If the probability vector is omitted a
 uniform mixture is assumed.
+
+A DensityOperator can be created from a single pure state using the :py:meth:`.State.density_operator`
+method:
+
+.. code-block:: python
+
+    >>> state = qc.bitstring(0, 0, 0)  # the state |000⟩
+    >>> rho = state.density_operator()
 
 Operators can be applied to mixed states in the same way that they are
 applied to pure states:
@@ -792,6 +801,39 @@ operator for the larger composite system:
     >>> print(composite_system.rank)
     6
 
+
+Reduced Density Operators and Purification
+==========================================
+
+The reduced density operator of a state can be computed using the
+:py:meth:`.State.reduced_density_operator` or
+:py:meth:`.DensityOperator.reduced_density_operator` methods,
+for pure and mixed states respectively.
+This will give the reduced density operator for the subsystem of the given
+qubit indices, by tracing out the remaining qubits.
+This is equivalent to the density operator obtained by measuring the traced out
+qubits and forgetting the result of the measurement.
+
+.. code-block:: python
+
+    >>> state = qc.bell_state(0, 0)
+    >>> rho = state.reduced_density_operator(qubit_indices=[0])
+    >>> print(rho)
+    Density operator for 1-qubit state space. Tensor:
+    [[0.5+0.j 0. +0.j]
+     [0. +0.j 0.5+0.j]]
+
+A mixed state can be purified with the :py:meth:`.DensityOperator.purify` method.
+This will produce a `2d` qubit pure state from a `d` qubit mixed state, with the
+measurement probabilities of the first `d` qubits in agreement with the measurement
+probabilities of the mixed state.
+
+.. code-block:: python
+
+    >>> state = rho.purify()
+    >>> print(state)
+    State([[0.70710678+0.j 0.        +0.j]
+           [0.        +0.j 0.70710678+0.j]])
 
 Warning: The No-Cloning Theorem
 ===============================
