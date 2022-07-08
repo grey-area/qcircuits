@@ -19,7 +19,9 @@ Installation
 
 Install with pip:
 
-``pip install qcircuits``
+.. code-block:: shell
+
+    pip install qcircuits
 
 .. inclusion-marker15-do-not-remove
 
@@ -37,7 +39,9 @@ Quantum circuit:
 .. image:: http://www.awebb.info/qcircuits/_images/teleport.png
     :scale: 40%
 
-Code::
+Code:
+
+.. code-block:: python
 
     import qcircuits as qc
 
