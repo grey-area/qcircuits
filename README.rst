@@ -34,7 +34,7 @@ Example usage: quantum teleportation
 
 Quantum circuit:
 
-.. image:: http://www.awebb.info/qcircuits/_images/teleport.png
+.. image:: http://www.awebb.info/qcircuits/images/teleport.png
     :scale: 40%
 
 Code::
